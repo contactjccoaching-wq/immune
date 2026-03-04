@@ -1,0 +1,410 @@
+{
+  "version": "2.0",
+  "name": "ImmuneEval+",
+  "description": "Benchmark dataset for the Immune System adaptive scanner. 70 test cases across 7 batches. Batches 5-7 designed to stress-test Hot/Cold tiered memory and COLD reactivation.",
+  "created": "2026-03-03",
+  "updated": "2026-03-04",
+  "batches": 7,
+  "cases_per_batch": 10,
+  "cases": [
+
+    {"id": "IE-001", "batch": 1, "domain": "code", "difficulty": "easy", "is_clean": false,
+      "input": "const userId = req.query.id;\nconst result = await db.prepare(`SELECT * FROM users WHERE id = '${userId}'`).all();\nreturn Response.json(result);",
+      "expected_issues": [
+        {"pattern": "SQL injection via string concatenation", "severity": "critical", "type": "known"}
+      ]},
+
+    {"id": "IE-002", "batch": 1, "domain": "fitness", "difficulty": "easy", "is_clean": false,
+      "input": "Programme débutant sédentaire (homme, 45 ans, jamais fait de sport) :\nJour 1 : Back squat 5x5 à 80kg, leg press 4x10, fentes marchées 3x12\nJour 2 : Bench press 5x5, développé incliné 4x8",
+      "expected_issues": [
+        {"pattern": "squat lourd + débutant sédentaire", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-003", "batch": 1, "domain": "code", "difficulty": "easy", "is_clean": false,
+      "input": "const STRIPE_KEY = 'sk_live_abc123def456';\nconst OPENAI_KEY = 'sk-proj-xxxxxxx';\n\nasync function charge(amount) {\n  return fetch('https://api.stripe.com/v1/charges', {\n    headers: { 'Authorization': `Bearer ${STRIPE_KEY}` }\n  });\n}",
+      "expected_issues": [
+        {"pattern": "API key hardcodée dans le code source", "severity": "critical", "type": "known"}
+      ]},
+
+    {"id": "IE-004", "batch": 1, "domain": "code", "difficulty": "easy", "is_clean": true,
+      "input": "async function getUser(id) {\n  try {\n    const stmt = db.prepare('SELECT * FROM users WHERE id = ?');\n    const user = await stmt.bind(id).first();\n    if (!user) return new Response('Not found', { status: 404 });\n    return Response.json(user);\n  } catch (err) {\n    console.error('DB error:', err);\n    return new Response('Server error', { status: 500 });\n  }\n}",
+      "expected_issues": []},
+
+    {"id": "IE-005", "batch": 1, "domain": "fitness", "difficulty": "easy", "is_clean": false,
+      "input": "Programme débutant femme 25 ans :\nJour 1 : Bench press 4x8, OHP 3x10, lateral raises 3x15, dips 3x12, chest fly 3x12\nJour 2 : Bench incliné 4x8, push-ups 3xAMRAP, cable fly 3x12\nAucun exercice de dos ou de tirage prévu.",
+      "expected_issues": [
+        {"pattern": "aucun exercice de tirage + programme push dominant", "severity": "critical", "type": "known"}
+      ]},
+
+    {"id": "IE-006", "batch": 1, "domain": "writing", "difficulty": "easy", "is_clean": false,
+      "input": "Les protéines de lactosérum augmentent la masse musculaire de 300% en 4 semaines. Le HIIT brûle 10 fois plus de calories que le cardio classique. Les compléments de créatine doublent la force en une semaine. La musculation réduit systématiquement le risque de cancer de 80%.",
+      "expected_issues": [
+        {"pattern": "affirmation sans source + contenu factuel", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-007", "batch": 1, "domain": "fitness", "difficulty": "easy", "is_clean": true,
+      "input": "Programme intermédiaire homme 30 ans, 4 séances/semaine :\nJour 1 Upper : Bench 4x8, Rows 4x10, OHP 3x10, Pull-ups 3x8, Face pulls 3x15\nJour 2 Lower : Squat 4x6, RDL 3x10, Leg press 3x12, Leg curl 3x12, Mollets 4x15\nDeload semaine 4. Ratio push:pull 1:1.5.",
+      "expected_issues": []},
+
+    {"id": "IE-008", "batch": 1, "domain": "code", "difficulty": "medium", "is_clean": false,
+      "input": "async function syncData() {\n  const users = await fetch('https://api.external.com/users');\n  const orders = await fetch('https://api.external.com/orders');\n  const products = await fetch('https://api.external.com/products');\n  const data = await users.json();\n  await db.insert(data);\n}",
+      "expected_issues": [
+        {"pattern": "pas de gestion d'erreur sur appel API externe", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-009", "batch": 1, "domain": "writing", "difficulty": "easy", "is_clean": true,
+      "input": "## Les bienfaits du sommeil sur la récupération musculaire\n\nSelon une méta-analyse publiée dans Sports Medicine (2021), un sommeil de 7 à 9 heures améliore la synthèse protéique de 20 à 30%.\n\n### Recommandations pratiques\n- Maintenir un horaire régulier\n- Éviter les écrans 1h avant le coucher\n- Température de la chambre : 18-20°C",
+      "expected_issues": []},
+
+    {"id": "IE-010", "batch": 1, "domain": "fitness", "difficulty": "medium", "is_clean": false,
+      "input": "Programme intermédiaire homme 28 ans, objectif masse :\nSemaine 1-6 sans interruption, volume progressif :\nS1: 16 séries/groupe, S2: 18, S3: 20, S4: 22, S5: 24, S6: 26 séries par groupe musculaire par semaine.",
+      "expected_issues": [
+        {"pattern": "plus de 20 séries par groupe musculaire par semaine + intermédiaire", "severity": "warning", "type": "known"},
+        {"pattern": "pas de deload sur 6 semaines + volume élevé", "severity": "warning", "type": "known"}
+      ]},
+
+
+    {"id": "IE-011", "batch": 2, "domain": "fitness", "difficulty": "medium", "is_clean": false,
+      "input": "Programme débutant, semaine 1 :\nBiceps : Curl barre EZ 4x10, curl barre droite 4x10, curl concentré 3x12\nNote : le pratiquant a une limitation de mobilité au coude droit (épicondylite).",
+      "expected_issues": [
+        {"pattern": "curl barre + limitation coude", "severity": "critical", "type": "known"}
+      ]},
+
+    {"id": "IE-012", "batch": 2, "domain": "code", "difficulty": "medium", "is_clean": false,
+      "input": "class UserService {\n  constructor() {\n    this.db = new Database();\n    this.cache = new Redis();\n    this.mailer = new Mailer();\n    this.logger = new Logger();\n  }\n  async createUser(data) {\n    const user = await this.db.insert(data);\n    await this.mailer.send(user.email, 'Welcome');\n    return user;\n  }\n}",
+      "expected_issues": [
+        {"pattern": "Manual dependency injection without factory pattern", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-013", "batch": 2, "domain": "code", "difficulty": "medium", "is_clean": false,
+      "input": "async function batchProcess(ids) {\n  const results = await Promise.all(\n    ids.map(id => db.query(`SELECT * FROM orders WHERE user_id = ?`, [id]))\n  );\n  // No pool config, no transaction boundaries\n  const updates = results.flat().map(r => db.query(`UPDATE orders SET status = 'processed' WHERE id = ?`, [r.id]));\n  await Promise.all(updates);\n}",
+      "expected_issues": [
+        {"pattern": "Parallel database queries without transaction strategy or pool limits", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-014", "batch": 2, "domain": "fitness", "difficulty": "medium", "is_clean": false,
+      "input": "Programme German Volume Training pour débutant qui n'a jamais touché une barre :\nSquat 10x10 à 60% 1RM, Bench press 10x10 à 60% 1RM, Deadlift 10x10.\nTempo: 4-0-2-0. Repos: 60s.",
+      "expected_issues": [
+        {"pattern": "GVT (10x10) + débutant", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-015", "batch": 2, "domain": "code", "difficulty": "easy", "is_clean": true,
+      "input": "export class UserService {\n  constructor(private db: Database, private mailer: Mailer) {}\n\n  async createUser(data: UserInput): Promise<User> {\n    try {\n      const user = await this.db.prepare('INSERT INTO users (name, email) VALUES (?, ?) RETURNING *')\n        .bind(data.name, data.email).first();\n      await this.mailer.send(user.email, 'Welcome');\n      return user;\n    } catch (err) {\n      throw new AppError('Failed to create user', { cause: err });\n    }\n  }\n}",
+      "expected_issues": []},
+
+    {"id": "IE-016", "batch": 2, "domain": "fitness", "difficulty": "medium", "is_clean": false,
+      "input": "Programme débutant, technique d'intensification dès la semaine 1 :\nBench press 3x10 + drop set sur chaque série\nSquat 3x10 + drop set\nOHP 3x10 + drop set\nCurl 3x10 + drop set",
+      "expected_issues": [
+        {"pattern": "drop set + débutant", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-017", "batch": 2, "domain": "code", "difficulty": "medium", "is_clean": false,
+      "input": "app.post('/api/users', async (req, res) => {\n  const user = await db.insert(req.body);\n  // Log only the request ID\n  console.log(`Request ${req.id}: user created`);\n  res.json(user);\n});",
+      "expected_issues": [
+        {"pattern": "Audit trail incomplete: missing timestamps and user attribution", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-018", "batch": 2, "domain": "writing", "difficulty": "medium", "is_clean": false,
+      "input": "L'entraînement en force est vraiment très important pour la santé. Il faut comprendre que l'entraînement en force aide à développer les muscles. Les muscles se développent grâce à l'entraînement en force. Quand on fait de l'entraînement en force, les muscles deviennent plus forts. La force musculaire est le résultat de l'entraînement en force régulier.",
+      "expected_issues": [
+        {"pattern": "réponse circulaire qui répète le même concept 3+ fois", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-019", "batch": 2, "domain": "fitness", "difficulty": "easy", "is_clean": true,
+      "input": "Programme débutant progressif 8 semaines :\nS1-2 : Goblet squat 3x10, Push-ups 3x8, Inverted rows 3x8, Plank 3x30s\nS3-4 : Back squat barre vide 3x8, DB bench 3x10, Cable row 3x10, Dead bug 3x10\nS5-8 : Back squat progressif, Bench press, Barbell row, RDL léger\nDeload S4. Ratio push:pull 1:1.5.",
+      "expected_issues": []},
+
+    {"id": "IE-020", "batch": 2, "domain": "code", "difficulty": "medium", "is_clean": false,
+      "input": "const isDev = true;\n\nexport default {\n  async fetch(request, env) {\n    const response = await handleRequest(request, env);\n    if (isDev) {\n      response.headers.set('X-Cache-Status', cacheStatus);\n      response.headers.set('X-Debug-Info', JSON.stringify(debugData));\n    }\n    return response;\n  }\n};",
+      "expected_issues": [
+        {"pattern": "Debug headers gated behind isDev flag without env var check", "severity": "warning", "type": "known"}
+      ]},
+
+
+    {"id": "IE-021", "batch": 3, "domain": "fitness", "difficulty": "hard", "is_clean": false,
+      "input": "Programme pour homme 50 ans avec douleurs lombaires chroniques :\nJour 1 : Soulevé de terre conventionnel 5x5, Good mornings 4x10, Back extensions 3x15\nJour 2 : Front squat 4x8, Fentes 3x12, Leg press 3x15",
+      "expected_issues": [
+        {"pattern": "soulevé de terre + douleur lombaire", "severity": "critical", "type": "known"}
+      ]},
+
+    {"id": "IE-022", "batch": 3, "domain": "fitness", "difficulty": "hard", "is_clean": false,
+      "input": "Programme épaules pour athlète avec mobilité limitée en rotation externe :\nDéveloppé nuque 4x8, Behind-the-neck pull-down 3x12, Upright row large 3x12\nFinisher : Bradford press 3x10",
+      "expected_issues": [
+        {"pattern": "développé nuque + limitation épaule", "severity": "critical", "type": "known"}
+      ]},
+
+    {"id": "IE-023", "batch": 3, "domain": "code", "difficulty": "hard", "is_clean": false,
+      "input": "export default {\n  async fetch(request, env) {\n    const cache = caches.default;\n    const cached = await cache.match(request);\n    if (cached) {\n      // Serve stale while revalidating\n      const fresh = fetch(request).then(r => cache.put(request, r.clone()));\n      return cached;\n    }\n    const response = await fetch(request);\n    response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate');\n    await cache.put(request, response.clone());\n    return response;\n  }\n};",
+      "expected_issues": [
+        {"pattern": "Stale-while-revalidate sans max-stale bound", "severity": "info", "type": "known"}
+      ]},
+
+    {"id": "IE-024", "batch": 3, "domain": "code", "difficulty": "hard", "is_clean": false,
+      "input": "async function processWebhook(req) {\n  const payload = req.body;\n  await db.prepare('INSERT INTO events (type, data) VALUES (?, ?)').bind(payload.type, JSON.stringify(payload)).run();\n  if (payload.type === 'payment.success') {\n    await updateSubscription(payload.customer_id);\n  }\n  return new Response('OK', { status: 200 });\n}",
+      "expected_issues": [
+        {"pattern": "no webhook signature verification", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-025", "batch": 3, "domain": "code", "difficulty": "easy", "is_clean": true,
+      "input": "import crypto from 'crypto';\n\nasync function processWebhook(req, env) {\n  const signature = req.headers.get('stripe-signature');\n  const payload = await req.text();\n  try {\n    const event = stripe.webhooks.constructEvent(payload, signature, env.WEBHOOK_SECRET);\n    await db.prepare('INSERT INTO events (type, data, created_at) VALUES (?, ?, ?)').bind(event.type, payload, new Date().toISOString()).run();\n    return new Response('OK');\n  } catch (err) {\n    return new Response('Invalid signature', { status: 400 });\n  }\n}",
+      "expected_issues": []},
+
+    {"id": "IE-026", "batch": 3, "domain": "writing", "difficulty": "hard", "is_clean": false,
+      "input": "Le jeûne intermittent est la méthode la plus efficace pour perdre du poids. Il suffit de ne pas manger pendant 16 heures par jour et les résultats sont garantis. Tout le monde peut le faire sans risque. Les études scientifiques prouvent unanimement que c'est supérieur à tout autre régime. Il n'y a aucun effet secondaire connu et les médecins le recommandent systématiquement.",
+      "expected_issues": [
+        {"pattern": "affirmation sans source + contenu factuel", "severity": "warning", "type": "known"},
+        {"pattern": "claims absolus sans nuance (garantis, unanimement, aucun, systématiquement)", "severity": "warning", "type": "novel"}
+      ]},
+
+    {"id": "IE-027", "batch": 3, "domain": "code", "difficulty": "hard", "is_clean": false,
+      "input": "app.get('/api/admin/users', async (req, res) => {\n  const users = await db.query('SELECT * FROM users');\n  res.json(users);\n});\n\napp.delete('/api/admin/users/:id', async (req, res) => {\n  await db.query('DELETE FROM users WHERE id = ?', [req.params.id]);\n  res.json({ success: true });\n});",
+      "expected_issues": [
+        {"pattern": "admin endpoints without authentication/authorization middleware", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-028", "batch": 3, "domain": "fitness", "difficulty": "easy", "is_clean": true,
+      "input": "Programme femme intermédiaire, objectif définition, 3 séances/semaine :\nJour 1 Full : Squat 4x8, Hip thrust 3x12, DB bench 3x10, Cable row 3x12, Face pull 3x15\nJour 2 Upper : OHP 3x10, Pull-ups 3x6, Lateral raise 3x15, Triceps pushdown 3x12, Curl haltère 3x12\nJour 3 Lower : RDL 4x8, Bulgarian split squat 3x10, Leg curl 3x12, Calf raise 4x15, Plank 3x45s\nDeload S5. Volume: 14 séries/groupe/semaine.",
+      "expected_issues": []},
+
+    {"id": "IE-029", "batch": 3, "domain": "code", "difficulty": "medium", "is_clean": false,
+      "input": "async function rateLimiter(request, env) {\n  const ip = request.headers.get('CF-Connecting-IP');\n  const key = `rate:${ip}`;\n  const count = await env.KV.get(key);\n  if (count && parseInt(count) > 100) {\n    return new Response('Too many requests', { status: 429 });\n  }\n  await env.KV.put(key, String((parseInt(count || '0') + 1)), { expirationTtl: 60 });\n}",
+      "expected_issues": [
+        {"pattern": "race condition on KV get/put for rate limiting", "severity": "warning", "type": "novel"}
+      ]},
+
+    {"id": "IE-030", "batch": 3, "domain": "writing", "difficulty": "easy", "is_clean": true,
+      "input": "## Comment choisir ses chaussures de running\n\nSelon l'American College of Sports Medicine, le choix des chaussures doit se baser sur trois critères principaux :\n\n### 1. Type de foulée\nUne analyse en magasin spécialisé permet de déterminer si vous êtes pronateur, supinateur ou neutre.\n\n### 2. Surface de course\n- Route : semelle plate, amorti moyen\n- Trail : crampons, protection latérale\n\n### 3. Distance habituelle\nLes coureurs longue distance (>15km) privilégieront un amorti maximal.",
+      "expected_issues": []},
+
+
+    {"id": "IE-031", "batch": 4, "domain": "code", "difficulty": "hard", "is_clean": false,
+      "input": "app.post('/api/upload', async (req, res) => {\n  const file = req.files.avatar;\n  const path = `./uploads/${file.name}`;\n  await file.mv(path);\n  await db.query('UPDATE users SET avatar = ? WHERE id = ?', [path, req.user.id]);\n  res.json({ path });\n});",
+      "expected_issues": [
+        {"pattern": "file upload without validation (type, size, path traversal)", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-032", "batch": 4, "domain": "fitness", "difficulty": "hard", "is_clean": false,
+      "input": "Programme PPL débutant, 6 séances/semaine :\nPush : Bench 4x10, OHP 4x10, Dips 3x12, Fly 3x15, Triceps 4x12\nPull : Deadlift 5x5, Rows 4x10, Pull-ups 3x8, Face pull 3x15, Curls 4x12\nLegs : Squat 5x5, Leg press 4x12, Lunges 3x10, Leg curl 3x12, Calves 4x15\nChaque séance x2/semaine. Volume total push : 22 séries pecs/semaine. Aucun deload prévu sur les 8 semaines.",
+      "expected_issues": [
+        {"pattern": "plus de 20 séries par groupe musculaire par semaine", "severity": "warning", "type": "known"},
+        {"pattern": "pas de deload sur 6+ semaines + volume élevé", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-033", "batch": 4, "domain": "code", "difficulty": "medium", "is_clean": false,
+      "input": "export default {\n  async fetch(request, env) {\n    const url = new URL(request.url);\n    const targetUrl = url.searchParams.get('url');\n    const response = await fetch(targetUrl);\n    return new Response(response.body, { headers: response.headers });\n  }\n};",
+      "expected_issues": [
+        {"pattern": "open redirect / SSRF via unvalidated URL parameter", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-034", "batch": 4, "domain": "fitness", "difficulty": "easy", "is_clean": true,
+      "input": "Programme débutant progressif 4 semaines :\nS1-2 : Goblet squat 3x10, DB bench 3x10, Cable row 3x10, Plank 3x20s\nS3-4 : Goblet squat 3x12, DB bench 3x12, Cable row 3x12, Plank 3x30s\nTempo contrôlé 2-1-2. Repos 90s. Ratio push:pull 1:1. Progression par reps.",
+      "expected_issues": []},
+
+    {"id": "IE-035", "batch": 4, "domain": "code", "difficulty": "hard", "is_clean": false,
+      "input": "async function login(req, env) {\n  const { email, password } = await req.json();\n  const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();\n  if (user && user.password === password) {\n    const token = btoa(JSON.stringify({ userId: user.id, exp: Date.now() + 86400000 }));\n    return Response.json({ token });\n  }\n  return new Response('Unauthorized', { status: 401 });\n}",
+      "expected_issues": [
+        {"pattern": "plaintext password comparison (no hashing)", "severity": "critical", "type": "novel"},
+        {"pattern": "JWT token using btoa instead of proper signing", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-036", "batch": 4, "domain": "writing", "difficulty": "medium", "is_clean": false,
+      "input": "La créatine monohydrate est le complément le plus étudié en science du sport. Elle augmente les réserves de phosphocréatine musculaire, permettant de maintenir l'intensité lors d'efforts courts et intenses. La dose recommandée est de 3 à 5g par jour. La phase de charge n'est pas nécessaire selon les études récentes. La créatine est sans danger pour les reins chez les personnes en bonne santé, comme l'a montré une revue systématique de 2019 dans le Journal of the International Society of Sports Nutrition. Cependant il est important de comprendre que la créatine agit sur les réserves de phosphocréatine ce qui permet d'avoir plus d'énergie dans les efforts courts et intenses, augmentant ainsi la phosphocréatine disponible dans les muscles pour les contractions explosives de haute intensité et courte durée qui nécessitent de la phosphocréatine musculaire.",
+      "expected_issues": [
+        {"pattern": "réponse circulaire qui répète le même concept 3+ fois", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-037", "batch": 4, "domain": "code", "difficulty": "easy", "is_clean": true,
+      "input": "import { verify } from 'hono/jwt';\n\nexport async function authMiddleware(c, next) {\n  const token = c.req.header('Authorization')?.replace('Bearer ', '');\n  if (!token) return c.json({ error: 'Missing token' }, 401);\n  try {\n    const payload = await verify(token, c.env.JWT_SECRET);\n    c.set('userId', payload.sub);\n    await next();\n  } catch {\n    return c.json({ error: 'Invalid token' }, 401);\n  }\n}",
+      "expected_issues": []},
+
+    {"id": "IE-038", "batch": 4, "domain": "fitness", "difficulty": "hard", "is_clean": false,
+      "input": "Programme homme 35 ans, douleur lombaire chronique, objectif renforcement :\nJour 1 : Soulevé de terre conventionnel 5x5 progressif, Barbell row 4x8, Good morning 3x10\nJour 2 : Back squat 5x5, Front squat 3x8, Leg press 3x12\nNote : développé nuque 4x8 le jeudi, le patient a aussi une tendinite à l'épaule.",
+      "expected_issues": [
+        {"pattern": "soulevé de terre + douleur lombaire", "severity": "critical", "type": "known"},
+        {"pattern": "développé nuque + limitation épaule", "severity": "critical", "type": "known"}
+      ]},
+
+    {"id": "IE-039", "batch": 4, "domain": "code", "difficulty": "medium", "is_clean": true,
+      "input": "export default {\n  async fetch(request, env) {\n    const url = new URL(request.url);\n    const allowedOrigins = ['https://example.com', 'https://app.example.com'];\n    const origin = request.headers.get('Origin');\n    \n    const response = await handleRequest(request, env);\n    \n    if (allowedOrigins.includes(origin)) {\n      response.headers.set('Access-Control-Allow-Origin', origin);\n      response.headers.set('Vary', 'Origin');\n    }\n    return response;\n  }\n};",
+      "expected_issues": []},
+
+    {"id": "IE-040", "batch": 4, "domain": "code", "difficulty": "hard", "is_clean": false,
+      "input": "async function exportData(req, env) {\n  const { format, query } = await req.json();\n  const data = await env.DB.prepare(query).all();\n  if (format === 'csv') {\n    return new Response(toCSV(data.results), { headers: { 'Content-Type': 'text/csv' } });\n  }\n  return Response.json(data.results);\n}",
+      "expected_issues": [
+        {"pattern": "arbitrary SQL execution via user-provided query parameter", "severity": "critical", "type": "novel"}
+      ]},
+
+
+    {"id": "IE-041", "batch": 5, "domain": "code", "difficulty": "medium", "is_clean": false,
+      "input": "async function getWeather(city) {\n  const response = await fetch(`https://api.weather.com/v1/${city}`);\n  const data = await response.json();\n  return data.temperature;\n}",
+      "expected_issues": [
+        {"pattern": "fetch sans try/catch ni vérification response.ok", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-042", "batch": 5, "domain": "fitness", "difficulty": "medium", "is_clean": false,
+      "input": "Programme débutant semaine 2, technique spéciale :\nBench press 3x10 + rest-pause sur la dernière série\nSquat 3x10 + myo-reps\nCurl 3x10 + drop set\nNote : le pratiquant n'a jamais fait de musculation avant.",
+      "expected_issues": [
+        {"pattern": "techniques d'intensification pour débutant semaine 1-2", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-043", "batch": 5, "domain": "code", "difficulty": "hard", "is_clean": false,
+      "input": "app.get('/profile/:id', async (req, res) => {\n  const user = await db.getUser(req.params.id);\n  res.send(`<h1>Welcome ${user.name}</h1><p>${user.bio}</p>`);\n});",
+      "expected_issues": [
+        {"pattern": "XSS via innerHTML/template literal avec user input non sanitisé", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-044", "batch": 5, "domain": "code", "difficulty": "easy", "is_clean": true,
+      "input": "import DOMPurify from 'dompurify';\n\napp.get('/profile/:id', async (req, res) => {\n  const user = await db.getUser(req.params.id);\n  const safeName = DOMPurify.sanitize(user.name);\n  const safeBio = DOMPurify.sanitize(user.bio);\n  res.send(`<h1>Welcome ${safeName}</h1><p>${safeBio}</p>`);\n});",
+      "expected_issues": []},
+
+    {"id": "IE-045", "batch": 5, "domain": "fitness", "difficulty": "hard", "is_clean": false,
+      "input": "Programme femme enceinte (6 mois de grossesse), objectif maintien forme :\nJour 1 : Crunch classiques 4x20, Russian twist 3x15, Planche abdominale 3x60s\nJour 2 : Squat jump 4x12, Box jump 3x10, Burpees 3x15\nJour 3 : Soulevé de terre conventionnel 4x8, Good mornings 3x12",
+      "expected_issues": [
+        {"pattern": "exercices contre-indiqués grossesse (crunch, impact, charge axiale)", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-046", "batch": 5, "domain": "writing", "difficulty": "medium", "is_clean": false,
+      "input": "Une étude a montré que le CBD réduit l'anxiété de 79.3% en moyenne. Les participants ont unanimement confirmé une amélioration significative. Il n'existe aucune contre-indication connue. Tous les médecins recommandent son utilisation quotidienne. Le CBD est garanti sans effets secondaires.",
+      "expected_issues": [
+        {"pattern": "claims absolus sans nuance (unanimement, aucune, tous, garanti)", "severity": "warning", "type": "known"},
+        {"pattern": "chiffre précis exagéré sans source vérifiable", "severity": "critical", "type": "known"}
+      ]},
+
+    {"id": "IE-047", "batch": 5, "domain": "code", "difficulty": "medium", "is_clean": false,
+      "input": "const DEBUG = true;\nconst VERBOSE = true;\n\nexport default {\n  async fetch(request, env) {\n    const result = await handleRequest(request, env);\n    if (DEBUG) {\n      result.headers.set('X-Query-Time', queryTime);\n      result.headers.set('X-Memory-Usage', memUsage);\n    }\n    if (VERBOSE) console.log(JSON.stringify(request.headers));\n    return result;\n  }\n};",
+      "expected_issues": [
+        {"pattern": "debug flags hardcodés sans env var", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-048", "batch": 5, "domain": "fitness", "difficulty": "easy", "is_clean": true,
+      "input": "Programme intermédiaire femme 28 ans, 3x/semaine :\nJour 1 : Hip thrust 4x10, Squat goblet 3x12, Fentes 3x10, Leg curl 3x12\nJour 2 : Bench DB 3x10, Row haltère 3x12, OHP 3x10, Face pull 3x15\nJour 3 : RDL 4x8, Bulgarian split squat 3x10, Pull-ups assistés 3x8, Plank 3x40s\nDeload S4. Push:pull 1:1.3. Volume 12-14 séries/groupe.",
+      "expected_issues": []},
+
+    {"id": "IE-049", "batch": 5, "domain": "code", "difficulty": "hard", "is_clean": false,
+      "input": "app.post('/api/login', async (req, res) => {\n  const { email, password } = req.body;\n  console.log(`Login attempt: ${email} with password: ${password}`);\n  const user = await db.findByEmail(email);\n  if (user && await bcrypt.compare(password, user.hash)) {\n    req.session.userId = user.id;\n    console.log(`Success: user ${email} logged in with ${password}`);\n    res.json({ success: true });\n  } else {\n    res.status(401).json({ error: 'Invalid credentials' });\n  }\n});",
+      "expected_issues": [
+        {"pattern": "mot de passe en clair dans les logs", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-050", "batch": 5, "domain": "writing", "difficulty": "medium", "is_clean": false,
+      "input": "Le cardio à jeun est la meilleure méthode pour brûler les graisses. Plusieurs paragraphes plus loin : Cependant, les recherches montrent que le moment de la journée n'a aucun impact significatif sur la lipolyse totale. L'important est le déficit calorique global. En conclusion, nous recommandons fortement le cardio à jeun comme stratégie supérieure de perte de graisse.",
+      "expected_issues": [
+        {"pattern": "contradiction interne (introduction et conclusion contredisent le corps du texte)", "severity": "warning", "type": "novel"}
+      ]},
+
+
+    {"id": "IE-051", "batch": 6, "domain": "code", "difficulty": "medium", "is_clean": false,
+      "input": "app.put('/api/orders/:id', async (req, res) => {\n  const updated = await db.update('orders', req.params.id, req.body);\n  console.log(`Order ${req.params.id} updated via request ${req.requestId}`);\n  res.json(updated);\n});",
+      "expected_issues": [
+        {"pattern": "audit trail incomplet: seulement request ID, manque timestamp et user", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-052", "batch": 6, "domain": "fitness", "difficulty": "hard", "is_clean": false,
+      "input": "Programme avancé split 7j/semaine, CHAQUE muscle 2x par semaine :\nLundi : Pecs + triceps (18 séries pecs)\nMardi : Dos + biceps (18 séries dos)\nMercredi : Épaules + trapèzes (16 séries épaules)\nJeudi : Pecs + triceps (18 séries pecs)\nVendredi : Dos + biceps (18 séries dos)\nSamedi : Épaules + jambes (16 séries épaules + 20 séries jambes)\nDimanche : Jambes (20 séries)\nTotal pecs : 36 séries/sem. Total jambes : 40 séries/sem. Aucun jour de repos. Durée : 12 semaines sans deload.",
+      "expected_issues": [
+        {"pattern": "volume excessif >20 séries/groupe/semaine", "severity": "critical", "type": "known"},
+        {"pattern": "12 semaines sans deload + volume élevé", "severity": "warning", "type": "known"},
+        {"pattern": "aucun jour de repos sur 7j/semaine", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-053", "batch": 6, "domain": "code", "difficulty": "hard", "is_clean": false,
+      "input": "app.get('/api/calculate', (req, res) => {\n  const formula = req.query.formula;\n  const result = eval(formula);\n  res.json({ result });\n});",
+      "expected_issues": [
+        {"pattern": "eval() avec input utilisateur = exécution de code arbitraire", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-054", "batch": 6, "domain": "code", "difficulty": "easy", "is_clean": true,
+      "input": "async function fetchUserData(userId, env) {\n  try {\n    const response = await fetch(`${env.API_URL}/users/${userId}`);\n    if (!response.ok) {\n      throw new Error(`API error: ${response.status}`);\n    }\n    return await response.json();\n  } catch (err) {\n    console.error('Failed to fetch user:', err.message);\n    throw new AppError('User fetch failed', { cause: err });\n  }\n}",
+      "expected_issues": []},
+
+    {"id": "IE-055", "batch": 6, "domain": "fitness", "difficulty": "medium", "is_clean": false,
+      "input": "Programme force pure :\nArriver à la salle, directement :\n- Squat 1RM test (max)\n- Bench press 1RM test\n- Deadlift 1RM test\nPas d'échauffement nécessaire, on va direct au max pour gagner du temps.\nRepos 5 min entre les lifts.",
+      "expected_issues": [
+        {"pattern": "1RM test sans échauffement = risque de blessure majeur", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-056", "batch": 6, "domain": "writing", "difficulty": "hard", "is_clean": false,
+      "input": "Les gens qui prennent de la vitamine D vivent plus longtemps, donc la vitamine D augmente l'espérance de vie. De même, les personnes qui font du yoga ont moins de stress, ce qui prouve que le yoga élimine le stress. Les coureurs ont de meilleurs marqueurs cardiovasculaires, donc courir guérit les maladies cardiaques. Les pays qui consomment plus de chocolat ont plus de prix Nobel, prouvant que le chocolat améliore l'intelligence.",
+      "expected_issues": [
+        {"pattern": "confusion corrélation/causalité systématique", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-057", "batch": 6, "domain": "code", "difficulty": "medium", "is_clean": false,
+      "input": "async function migrateUsers(sourceDB, targetDB) {\n  const allUsers = await sourceDB.prepare('SELECT * FROM users').all();\n  await Promise.all(\n    allUsers.results.map(user => \n      targetDB.prepare('INSERT INTO users (id, name, email) VALUES (?, ?, ?)')\n        .bind(user.id, user.name, user.email).run()\n    )\n  );\n  console.log(`Migrated ${allUsers.results.length} users`);\n}",
+      "expected_issues": [
+        {"pattern": "Promise.all sur queries DB sans batching ni transaction", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-058", "batch": 6, "domain": "fitness", "difficulty": "easy", "is_clean": true,
+      "input": "Semaine de deload (semaine 4 sur 5) :\nJour 1 : Squat 3x5 à 60% du max habituel, Leg press 2x10 léger\nJour 2 : Bench 3x5 à 60%, DB row 2x10 léger, Face pull 2x15\nJour 3 : RDL 3x5 à 60%, Pull-ups 2x5, Plank 2x30s\nObjectif : récupération active, maintien des schémas moteurs, volume réduit de 50%.",
+      "expected_issues": []},
+
+    {"id": "IE-059", "batch": 6, "domain": "code", "difficulty": "hard", "is_clean": false,
+      "input": "async function handleLogin(email, password) {\n  const res = await fetch('/api/auth/login', {\n    method: 'POST',\n    body: JSON.stringify({ email, password })\n  });\n  const { token, refreshToken } = await res.json();\n  localStorage.setItem('jwt', token);\n  localStorage.setItem('refreshToken', refreshToken);\n  localStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));\n}",
+      "expected_issues": [
+        {"pattern": "JWT et refresh token stockés dans localStorage (vulnérable XSS)", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-060", "batch": 6, "domain": "writing", "difficulty": "easy", "is_clean": true,
+      "input": "## L'impact du sommeil sur la performance sportive\n\nUne méta-analyse de Vitale et al. (2019, Sports Medicine) portant sur 23 études montre qu'une restriction de sommeil (<6h) réduit la performance de force de 5-10% et altère la prise de décision.\n\n### Recommandations\n- 7-9h de sommeil par nuit (American Academy of Sleep Medicine)\n- Sieste de 20-30 min si dette de sommeil\n- Limiter la caféine après 14h\n\nCes recommandations doivent être adaptées individuellement. Certaines personnes fonctionnent bien avec 7h tandis que d'autres nécessitent 9h.",
+      "expected_issues": []},
+
+
+    {"id": "IE-061", "batch": 7, "domain": "code", "difficulty": "hard", "is_clean": false,
+      "input": "async function search(req, env) {\n  const term = new URL(req.url).searchParams.get('q');\n  const results = await env.DB.prepare(\n    `SELECT * FROM products WHERE name LIKE '%${term}%' OR description LIKE '%${term}%'`\n  ).all();\n  return Response.json(results);\n}",
+      "expected_issues": [
+        {"pattern": "SQL injection via string interpolation dans LIKE clause", "severity": "critical", "type": "known"}
+      ]},
+
+    {"id": "IE-062", "batch": 7, "domain": "fitness", "difficulty": "hard", "is_clean": false,
+      "input": "Programme pour homme 40 ans avec rupture du LCA opérée il y a 3 mois :\nJour 1 : Back squat profond 5x5, Leg extension lourde 4x10, Jump squats 3x12\nJour 2 : Fentes sautées 4x10, Box jumps 3x10, Sprint 5x100m\nNote : le chirurgien a recommandé de reprendre progressivement et d'éviter les impacts.",
+      "expected_issues": [
+        {"pattern": "exercices contre-indiqués post-opératoire LCA (impact, charge lourde, plyométrie)", "severity": "critical", "type": "known"}
+      ]},
+
+    {"id": "IE-063", "batch": 7, "domain": "code", "difficulty": "medium", "is_clean": false,
+      "input": "async function sendNotifications(userIds, env) {\n  for (const id of userIds) {\n    const user = await env.DB.prepare('SELECT email FROM users WHERE id = ?').bind(id).first();\n    const response = await fetch(env.EMAIL_API, {\n      method: 'POST',\n      body: JSON.stringify({ to: user.email, subject: 'Update' })\n    });\n    // response could fail silently\n    console.log(`Sent to ${user.email}`);\n  }\n}",
+      "expected_issues": [
+        {"pattern": "fetch sans vérification response.ok ni try/catch", "severity": "warning", "type": "known"}
+      ]},
+
+    {"id": "IE-064", "batch": 7, "domain": "fitness", "difficulty": "medium", "is_clean": false,
+      "input": "Programme débutant semaine 1, jamais fait de sport :\nÉchauffement : 5 min vélo\nCircuit HIIT :\n- Box jumps 60cm 3x15\n- Depth jumps 3x10\n- Sprints 10x30m\n- Burpees 3x20\n- Tuck jumps 3x12\nRécupération : 30s entre exercices. 3 tours.",
+      "expected_issues": [
+        {"pattern": "plyométrie avancée pour débutant complet", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-065", "batch": 7, "domain": "code", "difficulty": "hard", "is_clean": false,
+      "input": "export default {\n  async fetch(request, env) {\n    const response = await handleRequest(request, env);\n    response.headers.set('Access-Control-Allow-Origin', '*');\n    response.headers.set('Access-Control-Allow-Credentials', 'true');\n    response.headers.set('Access-Control-Allow-Headers', '*');\n    response.headers.set('Access-Control-Allow-Methods', '*');\n    return response;\n  }\n};",
+      "expected_issues": [
+        {"pattern": "CORS wildcard (*) avec credentials=true = faille de sécurité", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-066", "batch": 7, "domain": "writing", "difficulty": "medium", "is_clean": false,
+      "input": "Le collagène en poudre rajeunit la peau de 500% en 2 semaines. Les études prouvent que 100% des utilisateurs voient des résultats spectaculaires. Le collagène triple la masse musculaire et quadruple la récupération articulaire. Ces compléments coûtent 10x moins cher que la chirurgie esthétique et sont 20x plus efficaces.",
+      "expected_issues": [
+        {"pattern": "affirmations chiffrées exagérées sans source (500%, 100%, triple, quadruple, 10x, 20x)", "severity": "critical", "type": "known"}
+      ]},
+
+    {"id": "IE-067", "batch": 7, "domain": "code", "difficulty": "easy", "is_clean": true,
+      "input": "async function rateLimiter(request, env) {\n  const ip = request.headers.get('CF-Connecting-IP');\n  const key = `rate:${ip}`;\n  \n  const { success } = await env.RATE_LIMITER.limit({ key });\n  if (!success) {\n    return new Response('Too Many Requests', { status: 429 });\n  }\n  return null; // proceed to handler\n}",
+      "expected_issues": []},
+
+    {"id": "IE-068", "batch": 7, "domain": "fitness", "difficulty": "easy", "is_clean": true,
+      "input": "Programme débutant homme 35 ans, 3x/semaine, progression 8 semaines :\nS1-2 : Goblet squat 3x10, Push-ups 3x8, Inverted row 3x8, Plank 3x20s, Bird dog 2x10\nS3-4 : Squat barre vide 3x8, DB bench 3x10, Cable row 3x10, Dead bug 3x10\nS5-8 : Back squat +2.5kg/sem, Bench +1kg/sem, Row +1kg/sem\nDeload S4 et S8. Push:pull 1:1. Échauffement 10 min obligatoire.",
+      "expected_issues": []},
+
+    {"id": "IE-069", "batch": 7, "domain": "code", "difficulty": "hard", "is_clean": false,
+      "input": "app.get('/api/files/:filename', (req, res) => {\n  const filePath = path.join('./uploads', req.params.filename);\n  res.sendFile(filePath);\n});",
+      "expected_issues": [
+        {"pattern": "path traversal via filename non validé (../../../etc/passwd)", "severity": "critical", "type": "novel"}
+      ]},
+
+    {"id": "IE-070", "batch": 7, "domain": "writing", "difficulty": "hard", "is_clean": false,
+      "input": "Le régime cétogène est idéal pour tous les sportifs. Mon ami Jean a perdu 15kg en cétogène, ce qui prouve son efficacité universelle. D'ailleurs, les bodybuilders professionnels utilisent tous ce régime (en réalité la plupart utilisent des régimes high-carb en prise de masse). Les graisses saturées sont excellentes pour la santé cardiovasculaire selon les dernières études (note: le consensus scientifique recommande de limiter les graisses saturées). En conclusion, abandonnez les glucides pour toujours.",
+      "expected_issues": [
+        {"pattern": "généralisation à partir d'un cas anecdotique (survivorship bias)", "severity": "warning", "type": "novel"},
+        {"pattern": "affirmation contredite par ses propres parenthèses", "severity": "warning", "type": "novel"}
+      ]}
+  ]
+}
