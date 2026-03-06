@@ -1,0 +1,10 @@
+{
+  "model": "opus",
+  "round": 1,
+  "security": 4,
+  "error_handling": 5,
+  "best_practices": 6,
+  "robustness": 3,
+  "total": 18,
+  "notes": "Hardcoded fallback JWT secret is a serious vulnerability if env var is unset. No rate limiting on login/register enables brute force. No email format validation. No bcrypt DoS protection (no max password length). Token generation and user response object duplicated (DRY violation). /me endpoint lacks try/catch. No global error handler. No input sanitization library. ID generation via array length is fragile. On the positive side: proper generic login error messages prevent user enumeration, password never leaked in responses, bcrypt with 10 rounds is reasonable, JWT expiry is set, code is clean and readable, proper HTTP status codes used throughout."
+}

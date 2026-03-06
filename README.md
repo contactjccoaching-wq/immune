@@ -46,9 +46,63 @@ Pre-configured: `fitness`, `code`, `writing`, `research`, `strategy`, `webdesign
 
 Add custom domains by editing `config.yaml` → `domain_keywords`.
 
-## Benchmark: ImmuneEval+
+## Benchmark: Learning Curve
 
-Run `/immune-eval` to measure detection accuracy and learning progression across 40 test cases in 4 batches. Tracks Recall, Precision, F1, and learning rate per batch.
+**Does immune actually improve code quality?** We tested it across 8 real-world coding tasks, 3 models, and 24 blind judgments.
+
+### Protocol
+
+1. Reset immune memory to 0
+2. Round 1: Generate code **without** immune (baseline)
+3. Rounds 2-8: Inject learned cheatsheet strategies **before** generation, scan **after**, learn new patterns
+4. Judge (Opus) scores blind on /40: security, error handling, best practices, robustness
+
+### Results
+
+| Model | Baseline (R1) | With Immune (avg R2-R8) | Improvement |
+|-------|:---:|:---:|:---:|
+| **Haiku** | 19/40 | 22.3/40 | **+17%** |
+| **Sonnet** | 17/40 | 26.9/40 | **+58%** |
+| **Opus** | 18/40 | 26.7/40 | **+48%** |
+
+### Score Progression
+
+```
+     R1    R2    R3    R4    R5    R6    R7    R8
+     (0)  (+3)  (+8) (+10) (+15) (+20) (+20) (+20) strategies
+      │     │     │     │     │     │     │     │
+  31 ─┤     ·     ·     ·     *     ·     ·     ·   Opus peak
+  29 ─┤     ·     ·     ·     *     ·     *     ·   Sonnet peaks
+  27 ─┤     **    **    *     ·     ·     ·     ·
+  25 ─┤     *     *     *     *     **    *     **
+  23 ─┤     ·     *     ·     ·     *     *     *
+  21 ─┤     ·     ·     ·     ·     ·     ·     ·
+  19 ─┤     *     ·     ·     *     ·     ·     ·   Haiku baseline
+  17 ─┤     *     ·     ·     ·     ·     ·     ·   Sonnet baseline
+      └─────┴─────┴─────┴─────┴─────┴─────┴─────┘
+```
+
+### Key Findings
+
+- **Sonnet benefits most** (+58%): Mid-tier models are the sweet spot — strong enough to follow strategies, weak enough to need them
+- **Knowledge transfers across domains**: Strategies from auth code improved WebSocket, proxy, and webhook code
+- **30 antibodies + 20 strategies** learned in 8 rounds, with diminishing returns around round 5
+- **Best single score**: Opus at 31/40 on API proxy task (R5)
+
+Open [`benchmark/viewer.html`](benchmark/viewer.html) for interactive charts, or see [`benchmark/results.md`](benchmark/results.md) for the full data.
+
+### Tasks
+
+| Round | Domain | Task |
+|-------|--------|------|
+| R1 | Backend auth | JWT auth API (Express, bcrypt) |
+| R2 | Backend CRUD | Todo list API (filtering, pagination) |
+| R3 | File handling | Image upload + thumbnail (multer, sharp) |
+| R4 | WebSocket | Multi-room chat server (ws library) |
+| R5 | Infrastructure | API proxy + circuit breaker + cache |
+| R6 | Tooling | CLI markdown indexer + sitemap |
+| R7 | Events | Webhook receiver + HMAC + retry |
+| R8 | Security | Session auth + CSRF + brute-force protection |
 
 ## Architecture
 

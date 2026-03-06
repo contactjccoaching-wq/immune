@@ -1,0 +1,46 @@
+{
+  "round": 1,
+  "security": {
+    "score": 4,
+    "issues": [
+      "JWT_SECRET hardcoded as a string literal in source — must be loaded from environment variable",
+      "No rate limiting on /login — trivially vulnerable to brute-force and credential stuffing attacks",
+      "No payload size limit on express.json() — large JSON bodies can cause DoS",
+      "bcrypt truncates passwords silently at 72 bytes — passwords longer than 72 chars all produce the same hash, a known security pitfall",
+      "No email format validation — arbitrary strings accepted as email",
+      "No HTTPS enforcement or Secure/HttpOnly cookie handling (token exposed in JSON body)",
+      "No password minimum strength enforcement"
+    ]
+  },
+  "error_handling": {
+    "score": 6,
+    "issues": [
+      "req.body fields accessed without checking if req.body itself is defined — malformed Content-Type can yield undefined body",
+      "Global error handler present but only catches synchronous middleware errors, not async route errors that are already handled internally",
+      "No logging of error details server-side (err swallowed silently in catch blocks) — makes debugging impossible in production"
+    ]
+  },
+  "best_practices": {
+    "score": 5,
+    "issues": [
+      "JWT_SECRET should be read from process.env, not hardcoded",
+      "User ID assigned as users.length + 1 — not unique after deletions, race-condition-prone in concurrent scenarios",
+      "No email normalization (e.g., lowercase trim) — 'User@example.com' and 'user@example.com' treated as different users",
+      "No separation of concerns — routes, middleware, data store, and server bootstrap all in a single file",
+      "No input sanitization beyond presence check — whitespace-only strings pass validation"
+    ]
+  },
+  "robustness": {
+    "score": 4,
+    "issues": [
+      "No rate limiting (express-rate-limit or similar) — login endpoint open to brute force",
+      "No express.json() size limit — default 100kb but not explicitly set; large payloads risk memory pressure",
+      "No email format validation with regex — any non-empty string accepted",
+      "No password maximum length enforcement — bcrypt 72-byte truncation silently degrades security",
+      "In-memory users array grows unbounded with no eviction or size cap",
+      "User ID strategy (users.length + 1) breaks after any deletion — not production-safe",
+      "No request timeout configured — slow clients can hold connections indefinitely"
+    ]
+  },
+  "total": 19
+}

@@ -1,0 +1,54 @@
+{
+  "benchmark": "immune-learning-curve",
+  "version": "1.0",
+  "description": "8 real Claude Code tasks. Haiku generates code, immune scans and learns between rounds, Opus judges blind.",
+  "judge_rubric": {
+    "security": "XSS, injection, auth bypass, secrets exposure, CSRF (0-10)",
+    "error_handling": "try/catch, null checks, edge cases, graceful degradation (0-10)",
+    "best_practices": "DRY, separation of concerns, naming, no dead code (0-10)",
+    "robustness": "input validation, rate limiting, timeout handling, resource cleanup (0-10)",
+    "total": "sum of 4 categories (0-40)"
+  },
+  "tasks": [
+    {
+      "round": 1,
+      "task": "Build a user authentication API with JWT tokens. Express.js, bcrypt for passwords, login/register/me endpoints. Store users in-memory. Return proper HTTP status codes.",
+      "domain": "backend auth"
+    },
+    {
+      "round": 2,
+      "task": "Build a REST API for a todo list with CRUD operations. Express.js, in-memory storage, filtering by status (done/pending), pagination with limit/offset, proper error responses.",
+      "domain": "backend CRUD"
+    },
+    {
+      "round": 3,
+      "task": "Build a file upload endpoint that accepts images (jpg/png/webp), validates file type and size (max 5MB), generates thumbnails, and stores metadata. Express.js with multer.",
+      "domain": "backend file handling"
+    },
+    {
+      "round": 4,
+      "task": "Build a real-time chat server with WebSockets. Support multiple rooms, user nicknames, message history (last 50), typing indicators, and connection/disconnection events. Use ws library.",
+      "domain": "backend websocket"
+    },
+    {
+      "round": 5,
+      "task": "Build a rate-limited API proxy that forwards requests to a third-party API, caches responses in-memory with TTL, handles API key rotation on 401, and implements circuit breaker pattern.",
+      "domain": "backend infrastructure"
+    },
+    {
+      "round": 6,
+      "task": "Build a CLI tool that reads a directory of markdown files, extracts frontmatter metadata, generates a static JSON search index, and outputs an HTML sitemap. Pure Node.js, no frameworks.",
+      "domain": "tooling"
+    },
+    {
+      "round": 7,
+      "task": "Build a webhook receiver that validates HMAC signatures, processes events idempotently (deduplication by event ID), retries failed handlers with exponential backoff, and logs to structured JSON.",
+      "domain": "backend events"
+    },
+    {
+      "round": 8,
+      "task": "Build a session-based authentication middleware with CSRF protection, secure cookie settings, session expiry/renewal, brute-force protection (account lockout after 5 failed attempts), and password reset flow with time-limited tokens.",
+      "domain": "backend security"
+    }
+  ]
+}
