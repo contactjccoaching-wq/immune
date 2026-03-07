@@ -91,6 +91,25 @@ Add custom domains by editing `config.yaml` → `domain_keywords`.
 
 Open [`benchmark/viewer.html`](benchmark/viewer.html) for interactive charts, or see [`benchmark/results.md`](benchmark/results.md) for the full data.
 
+### Comparison: Immune vs Superpowers vs Both
+
+We also compared immune against the [Superpowers](https://github.com/anthropics/claude-code-plugins) methodology plugin, using Sonnet for all conditions:
+
+| Condition | Avg Score | vs Naked |
+|-----------|:---------:|:--------:|
+| Naked (Sonnet) | 17.0 | — |
+| Immune only | 26.9 | **+58%** |
+| Superpowers only | 31.1 | **+83%** |
+| **SP + Immune** | **34.6** | **+104%** |
+
+- **SP+Immune is the best condition** — doubling the naked baseline
+- **Superpowers alone outperforms Immune alone** (+16%) — methodology principles (SRP, DRY, YAGNI) have high baseline impact
+- **Immune adds +11% on top of SP** — the combination is additive, not redundant
+- **Security (+1.3pp) and Robustness (+1.4pp)** are where immune adds the most value over superpowers alone
+- **SP+IM achieves 36/40 consistently from R4+** — immune stabilizes quality near the ceiling
+
+See [`benchmark/comparison/results.md`](benchmark/comparison/results.md) for full breakdown.
+
 ### Tasks
 
 | Round | Domain | Task |
