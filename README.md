@@ -123,6 +123,25 @@ See [`benchmark/comparison/results.md`](benchmark/comparison/results.md) for ful
 | R7 | Events | Webhook receiver + HMAC + retry |
 | R8 | Security | Session auth + CSRF + brute-force protection |
 
+## Why It Matters: Institutional Knowledge Transfer
+
+The biggest value isn't the benchmark scores — it's **knowledge persistence across team changes**.
+
+When a senior developer leaves, their hard-won knowledge leaves with them: "never do X on this project", "always check Y before deploying", "this API silently fails on Z". With immune, that knowledge lives in two JSON files:
+
+- **37 antibodies** = 37 mistakes someone already made and corrected
+- **33 strategies** = 33 winning patterns validated in production
+
+A new team member runs `/immune` on their first code and immediately inherits months of accumulated domain expertise. Not a wiki nobody reads — patterns that **automatically inject** into the workflow.
+
+| Traditional | With Immune |
+|-------------|-------------|
+| Knowledge in people's heads | Knowledge in `immune_memory.json` |
+| Lost on employee turnover | Persists across team changes |
+| Onboarding takes weeks | Day-1 access to all patterns |
+| Same mistakes repeated | Each mistake caught once, prevented forever |
+| Tribal knowledge, undocumented | Explicit, versioned, auditable |
+
 ## Architecture
 
 Inspired by biological immune systems + Stanford's Dynamic Cheatsheet (2025):
