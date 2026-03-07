@@ -110,6 +110,45 @@ We also compared immune against the [Superpowers](https://github.com/anthropics/
 
 See [`benchmark/comparison/results.md`](benchmark/comparison/results.md) for full breakdown.
 
+### Token Cost Analysis
+
+Every quality improvement has a cost. Here's what each point of improvement actually costs in tokens:
+
+| Condition | Total tokens (8 rounds) | Improvement | Cost per point |
+|-----------|:-----------------------:|:-----------:|:--------------:|
+| Superpowers only | ~61k | +14.1 pts (17→31.1) | **~4,300 tokens/point** |
+| SP + Immune | ~92k | +17.6 pts (17→34.6) | **~5,200 tokens/point** |
+| Immune marginal cost | +31k | +3.5 pts (31.1→34.6) | **~8,900 tokens/point** |
+
+The first points are cheap, the last ones cost 2x more — classic diminishing returns. But those last 3.5 points are almost entirely in **security** (+1.3pp) and **robustness** (+1.4pp), which are the most critical categories in production code.
+
+```
+Cost per point vs quality level:
+
+  tokens/pt
+  9000 ─┤                              ╭── Immune marginal
+  8000 ─┤                             ╱    (+3.5 pts in security
+  7000 ─┤                            ╱      & robustness)
+  6000 ─┤                           ╱
+  5000 ─┤              ╭── SP+IM ──╯
+  4000 ─┤    ╭── SP ──╯
+  3000 ─┤   ╱
+  2000 ─┤  ╱
+  1000 ─┤ ╱
+     0 ─┤╱
+        └──────────────────────────────────
+        17    22    27    31   34.6  /40
+              Quality score →
+```
+
+**Where the tokens go:**
+- **Superpowers** adds ~2,500 input tokens/round (static methodology injection — same cost every round)
+- **Immune cheatsheet** adds ~900 input tokens/round (grows with learned strategies)
+- **Immune scan** adds ~1,700 tokens/round (Haiku scan prompt + response — cheapest model)
+- **Output grows** with quality: SP+IM generates ~27% more code than SP alone (more validation, error handling, security headers)
+
+**The ROI argument:** A single security vulnerability in production costs orders of magnitude more than 31k tokens. The immune's marginal cost targets exactly the categories (security, robustness) that cause the most expensive production incidents.
+
 ### Tasks
 
 | Round | Domain | Task |
