@@ -1,5 +1,8 @@
 # Immune System v3 — Hybrid Adaptive Memory for Claude Code
 
+[![Stars](https://img.shields.io/github/stars/contactjccoaching-wq/immune?style=social)](https://github.com/contactjccoaching-wq/immune)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A Claude Code skill that makes any LLM output better over time through two complementary memories:
 
 - **Cheatsheet** (positive patterns): Domain-specific winning strategies injected *before* generation
@@ -233,6 +236,15 @@ Inspired by biological immune systems + Stanford's Dynamic Cheatsheet (2025):
 ## Integration with Chimera
 
 The immune system works standalone (`/immune`) or as Phase 3 of the [Chimera](https://github.com/contactjccoaching-wq/chimera) bio-inspired pipeline. When used with Chimera, cheatsheet strategies are injected into PRISM perspective prompts (Phase 0.5).
+
+## Related Projects
+
+Other bio-inspired AI tools from the same author:
+
+- [**chimera**](https://github.com/contactjccoaching-wq/chimera) — 3-stage optimization pipeline (Slime Mold → PRISM → Immune)
+- [**spinal-loop**](https://github.com/contactjccoaching-wq/spinal-loop) — Neuromuscular-inspired agent routing (cheap models first)
+- [**prism-framework**](https://github.com/contactjccoaching-wq/prism-framework) — Multi-agent synthesis via native LLM stochasticity
+- [**smartrabbit-mcp**](https://github.com/contactjccoaching-wq/smartrabbit-mcp) — MCP server for AI workout generation ([smartrabbitfitness.com](https://www.smartrabbitfitness.com))
 
 ## License
 
