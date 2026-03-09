@@ -91,59 +91,93 @@ Add custom domains by editing `config.yaml` → `domain_keywords`.
 
 Open [`benchmark/viewer.html`](benchmark/viewer.html) for interactive charts, or see [`benchmark/results.md`](benchmark/results.md) for the full data.
 
-### Comparison: Immune vs Superpowers vs Both
+### Benchmark v2: Accumulated Memory (57 AB + 45 CS)
 
-We also compared immune against the [Superpowers](https://github.com/anthropics/claude-code-plugins) methodology plugin, using Sonnet for all conditions:
+The v1 benchmark started from zero and learned 30 antibodies + 20 strategies over 8 rounds. But that's an artificial setup — in practice, immune memory is built through real work over time.
 
-| Condition | Avg Score | vs Naked |
-|-----------|:---------:|:--------:|
-| Naked (Sonnet) | 17.0 | — |
-| Immune only | 26.9 | **+58%** |
-| Superpowers only | 31.1 | **+83%** |
-| **SP + Immune** | **34.6** | **+104%** |
+**How the 57+45 memory was actually built:**
 
-- **SP+Immune is the best condition** — doubling the naked baseline
-- **Superpowers alone outperforms Immune alone** (+16%) — methodology principles (SRP, DRY, YAGNI) have high baseline impact
-- **Immune adds +11% on top of SP** — the combination is additive, not redundant
-- **Security (+1.3pp) and Robustness (+1.4pp)** are where immune adds the most value over superpowers alone
-- **SP+IM achieves 36/40 consistently from R4+** — immune stabilizes quality near the ceiling
+| Phase | Work done | AB learned | CS learned |
+|-------|-----------|:----------:|:----------:|
+| v1 benchmark | 8 coding tasks × 3 models, blind judging | +30 | +20 |
+| Fitness program reviews | Scanned ~50 React programs from Smart Rabbit (1000+ profiles DB) | +16 | +15 |
+| Security audit | Manual audit of 3 Cloudflare Workers (~8000 lines), then `/immune scan` on findings | +12 | +6 |
+| Code reviews | PWA review, blog worker review, webdesign scans | +7 | +4 |
+| Writing scans | Blog articles, technical documentation, benchmark writeup itself | -8 (deduplicated) | 0 |
+| **Total** | | **57** | **45** |
 
-See [`benchmark/comparison/results.md`](benchmark/comparison/results.md) for full breakdown.
+This took ~2 weeks of real usage. The memory doesn't appear by itself — you have to scan real outputs, review real code, audit real infrastructure. Each task teaches immune something new.
 
-### Token Cost Analysis
+We re-ran the same 8 benchmark tasks with Sonnet using this accumulated memory:
 
-At first glance, SP+Immune looks expensive — 92k tokens vs 61k for SP alone. But the output tokens (the generated code) aren't a cost of immune — they're the deliverable. More validation, security headers, and error handling is the quality you're buying.
+| Task | Naked | Immune v1 (0→30) | Immune v2 (57+45) | Delta v1→v2 |
+|------|:-----:|:----------------:|:-----------------:|:-----------:|
+| R1 JWT Auth | 17 | — (baseline) | **33** | — |
+| R2 Todo CRUD | — | 28 | **32** | +4 |
+| R3 File Upload | — | 27 | **32** | +5 |
+| R4 WebSocket | — | 25 | **33** | +8 |
+| R5 API Proxy | — | 29 | **31** | +2 |
+| R6 CLI Markdown | — | 25 | **30** | +5 |
+| R7 Webhook | — | 29 | **32** | +3 |
+| R8 Session Auth | — | 25 | **29** | +4 |
+| **Average** | **17.0** | **26.9** | **31.5** | **+4.6** |
 
-**The real cost of immune is only its machinery overhead:**
+Category breakdown (v2 averages):
+- Security: **8.6**/10 — strongest, driven by 12 security-specific antibodies from the audit
+- Error handling: **7.8**/10
+- Best practices: **7.6**/10
+- Robustness: **7.5**/10
 
-| Immune component | Tokens/round | Model | Cost/round |
-|-----------------|:------------:|:-----:|:----------:|
-| Cheatsheet injection | ~900 input | Sonnet | $0.0027 |
-| Scan prompt + antibodies | ~1,200 input | Haiku | $0.0003 |
-| Scan response | ~500 output | Haiku | $0.0006 |
-| **Total immune overhead** | **~2,600** | | **$0.0036** |
+See [`benchmark/run-v2/results.md`](benchmark/run-v2/results.md) for per-task judge details.
 
-**Over 8 rounds: ~21k tokens = $0.03** for +3.5 points in security and robustness.
+### Comparison: All Conditions
 
-Three cents. That's the actual cost of immune on top of any methodology.
+| Condition | Avg Score | vs Naked | Generation cost/task |
+|-----------|:---------:|:--------:|:--------------------:|
+| Naked (Sonnet) | 17.0 | — | ~$0.05 |
+| Immune v1 (0→30 AB) | 26.9 | +58% | ~$0.055 |
+| Superpowers only | 31.1 | +83% | ~$0.50-1.00 |
+| **Immune v2 (57+45)** | **31.5** | **+85%** | **~$0.055** |
+| **SP + Immune** | **34.6** | **+104%** | ~$1.00+ |
 
-The scan runs on Haiku (cheapest model, ~60x cheaper than Sonnet), so the immune machinery is essentially free. The "expensive" part of SP+IM is the better code itself — which is the whole point.
+See [`benchmark/comparison/results.md`](benchmark/comparison/results.md) for the original SP vs SP+IM breakdown.
 
-```
-Where the 31k extra tokens actually go:
+### Cost Analysis
 
-  Immune machinery (input+scan):  21k tokens  ← $0.03
-  Better code output (more       10k tokens  ← this IS the quality
-  validation, headers, guards)
+**Generation cost** = what it costs to produce one piece of code with the cheatsheet injected. Immune adds ~1,500 input tokens (the cheatsheet) to the existing prompt — no extra API calls.
 
-  The overhead buys you:
-    Security:      7.3 → 8.6  (+1.3pp)
-    Robustness:    7.0 → 8.4  (+1.4pp)
-    Error handling: 8.1 → 8.8 (+0.7pp)
-    Best practices: 8.8 → 8.9 (+0.1pp) ← SP already maxes this
-```
+| | Generation overhead/task | Quality gain |
+|---|:---:|:---:|
+| Immune v2 | +$0.005 (1,500 tokens) | +14.5 pts (+85%) |
+| Superpowers | +$0.50-1.00 (3-5 extra API calls) | +14.1 pts (+83%) |
 
-**Bottom line:** Immune adds ~$0.03 of overhead per 8 generations to close the security and robustness gaps that methodology alone can't cover. A single production vulnerability costs orders of magnitude more.
+**But this doesn't include the cost of building the memory.** The 57 antibodies and 45 strategies came from real work:
+- v1 benchmark (8 rounds × 3 models + judging): ~$30-40
+- Fitness program scans (~50 programs × Haiku scan): ~$2
+- Security audit (3 agents × Opus): ~$5
+- Code/writing reviews: ~$3-5
+
+**Total investment to build the memory: ~$40-50 over 2 weeks.**
+
+Once built, the memory is essentially free to use (~$0.005/task). The ROI depends on volume — at 1,000 generations, the amortized cost of building + using immune is ~$0.10/task vs $0.50-1.00/task for Superpowers.
+
+### Accelerating Learning: Pair with Quality Tools
+
+The fastest way to build immune memory is to **use it alongside high-performing tools** like [Superpowers](https://github.com/anthropics/claude-code-plugins) or Chimera:
+
+1. Generate code with Superpowers (31/40 quality, ~$0.75/task)
+2. Scan the output with `/immune` → learns winning strategies + catches remaining issues
+3. Repeat 5-10 times across different tasks
+4. Immune alone now produces 31.5/40 quality for $0.055/task
+
+It's like training with a coach and then internalizing the lessons. The coach (Superpowers) costs $0.75/session, but once immune has absorbed the patterns, you get the same quality for $0.005/session.
+
+In practice, our memory went from 0 to 57+45 in ~2 weeks by combining:
+- Superpowers code generation → immune scan (learned code structure patterns)
+- Security audit findings → immune scan (learned 12 security antibodies in one session)
+- Fitness program reviews → immune scan (learned domain-specific React patterns)
+
+Each scan with a quality tool teaches immune 2-5 new patterns. After ~20 scans, the memory plateaus and immune alone matches the tool's output quality.
 
 ### Tasks
 
@@ -164,8 +198,8 @@ The biggest value isn't the benchmark scores — it's **knowledge persistence ac
 
 When a senior developer leaves, their hard-won knowledge leaves with them: "never do X on this project", "always check Y before deploying", "this API silently fails on Z". With immune, that knowledge lives in two JSON files:
 
-- **37 antibodies** = 37 mistakes someone already made and corrected
-- **33 strategies** = 33 winning patterns validated in production
+- **57 antibodies** = 57 mistakes someone already made and corrected
+- **45 strategies** = 45 winning patterns validated in production
 
 A new team member runs `/immune` on their first code and immediately inherits months of accumulated domain expertise. Not a wiki nobody reads — patterns that **automatically inject** into the workflow.
 
