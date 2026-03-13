@@ -1,0 +1,130 @@
+{
+  "benchmark": "immune-v4-learning-curve",
+  "date": "2026-03-12",
+  "protocol": "8 rounds per model. Each model generates code with cheatsheet injection, immune system scans+learns, Opus judges /40 on 4 axes (security, error_handling, best_practices, robustness).",
+  "tasks": [
+    {"round": 1, "task": "JWT Auth API", "description": "REST API with JWT authentication, registration, login, protected routes"},
+    {"round": 2, "task": "TODO CRUD API", "description": "Full CRUD REST API for TODO items with validation and pagination"},
+    {"round": 3, "task": "File Upload API", "description": "File upload server with type validation, size limits, metadata"},
+    {"round": 4, "task": "WebSocket Chat Server", "description": "Real-time chat with rooms, private messaging, rate limiting"},
+    {"round": 5, "task": "API Proxy with Circuit Breaker", "description": "Reverse proxy with circuit breaker, retry logic, rate limiting"},
+    {"round": 6, "task": "CLI Markdown to JSON/HTML", "description": "CLI tool converting Markdown to AST JSON and HTML output"},
+    {"round": 7, "task": "Webhook Receiver Server", "description": "Webhook ingestion with HMAC verification, retry queue, idempotency"},
+    {"round": 8, "task": "Session Auth Server", "description": "Session-based auth with CSRF, bcrypt, session management, rate limiting"}
+  ],
+  "models": {
+    "haiku": {
+      "label": "Claude Haiku",
+      "token_total_estimate": 195000,
+      "rounds": [
+        {"round": 1, "score": {"security": 3, "error_handling": 6, "best_practices": 5, "robustness": 3, "total": 17}, "memory_after": {"antibodies": 10, "strategies": 5}},
+        {"round": 2, "score": {"security": 5, "error_handling": 8, "best_practices": 7, "robustness": 6, "total": 26}, "memory_after": {"antibodies": 14, "strategies": 8}},
+        {"round": 3, "score": {"security": 5, "error_handling": 7, "best_practices": 6, "robustness": 5, "total": 23}, "memory_after": {"antibodies": 18, "strategies": 11}},
+        {"round": 4, "score": {"security": 5, "error_handling": 7, "best_practices": 7, "robustness": 6, "total": 25}, "memory_after": {"antibodies": 21, "strategies": 14}},
+        {"round": 5, "score": {"security": 6, "error_handling": 8, "best_practices": 7, "robustness": 6, "total": 27}, "memory_after": {"antibodies": 24, "strategies": 14}},
+        {"round": 6, "score": {"security": 6, "error_handling": 7, "best_practices": 6, "robustness": 5, "total": 24}, "memory_after": {"antibodies": 25, "strategies": 19}},
+        {"round": 7, "score": {"security": 7, "error_handling": 6, "best_practices": 6, "robustness": 6, "total": 25}, "memory_after": {"antibodies": 26, "strategies": 21}},
+        {"round": 8, "score": {"security": 7, "error_handling": 6, "best_practices": 6, "robustness": 5, "total": 24}, "memory_after": {"antibodies": 28, "strategies": 24}}
+      ]
+    },
+    "sonnet": {
+      "label": "Claude Sonnet",
+      "token_total_estimate": 303106,
+      "tokens_per_round": [89100, 35315, 27866, 30415, 29619, 28946, 31323, 30522],
+      "rounds": [
+        {"round": 1, "score": {"security": 5, "error_handling": 7, "best_practices": 6, "robustness": 5, "total": 23}, "memory_after": {"antibodies": 8, "strategies": 6}},
+        {"round": 2, "score": {"security": 5, "error_handling": 8, "best_practices": 7, "robustness": 6, "total": 26}, "memory_after": {"antibodies": 12, "strategies": 9}},
+        {"round": 3, "score": {"security": 6, "error_handling": 7, "best_practices": 7, "robustness": 6, "total": 26}, "memory_after": {"antibodies": 15, "strategies": 12}},
+        {"round": 4, "score": {"security": 5, "error_handling": 7, "best_practices": 7, "robustness": 6, "total": 25}, "memory_after": {"antibodies": 18, "strategies": 15}},
+        {"round": 5, "score": {"security": 5, "error_handling": 8, "best_practices": 7, "robustness": 6, "total": 26}, "memory_after": {"antibodies": 20, "strategies": 18}},
+        {"round": 6, "score": {"security": 5, "error_handling": 6, "best_practices": 6, "robustness": 5, "total": 22}, "memory_after": {"antibodies": 22, "strategies": 20}},
+        {"round": 7, "score": {"security": 6, "error_handling": 7, "best_practices": 7, "robustness": 5, "total": 25}, "memory_after": {"antibodies": 24, "strategies": 22}},
+        {"round": 8, "score": {"security": 7, "error_handling": 7, "best_practices": 7, "robustness": 6, "total": 27}, "memory_after": {"antibodies": 26, "strategies": 24}}
+      ]
+    },
+    "opus": {
+      "label": "Claude Opus",
+      "token_total_estimate": 349268,
+      "tokens_per_round": [92319, 33850, 40510, 32067, 33151, 33855, 34834, 48682],
+      "rounds": [
+        {"round": 1, "score": {"security": 6, "error_handling": 8, "best_practices": 7, "robustness": 6, "total": 27}, "memory_after": {"antibodies": 7, "strategies": 5}},
+        {"round": 2, "score": {"security": 6, "error_handling": 8, "best_practices": 8, "robustness": 7, "total": 29}, "memory_after": {"antibodies": 10, "strategies": 9}},
+        {"round": 3, "score": {"security": 7, "error_handling": 8, "best_practices": 8, "robustness": 7, "total": 30}, "memory_after": {"antibodies": 14, "strategies": 12}},
+        {"round": 4, "score": {"security": 7, "error_handling": 8, "best_practices": 8, "robustness": 7, "total": 30}, "memory_after": {"antibodies": 16, "strategies": 15}},
+        {"round": 5, "score": {"security": 8, "error_handling": 9, "best_practices": 9, "robustness": 8, "total": 34}, "memory_after": {"antibodies": 17, "strategies": 18}},
+        {"round": 6, "score": {"security": 7, "error_handling": 8, "best_practices": 8, "robustness": 7, "total": 30}, "memory_after": {"antibodies": 18, "strategies": 20}},
+        {"round": 7, "score": {"security": 9, "error_handling": 8, "best_practices": 9, "robustness": 8, "total": 34}, "memory_after": {"antibodies": 19, "strategies": 22}},
+        {"round": 8, "score": {"security": 9, "error_handling": 9, "best_practices": 9, "robustness": 8, "total": 35}, "memory_after": {"antibodies": 21, "strategies": 24}}
+      ]
+    },
+    "sp_immune": {
+      "label": "Opus + SP + Immune (progressive)",
+      "description": "Opus generator with 10 Superpowers engineering principles injected + progressive immune cheatsheet (empty at R1, grows each round)",
+      "token_total_estimate": 282426,
+      "tokens_per_round": [37944, 28350, 30806, 39322, 33251, 37800, 40327, 34626],
+      "rounds": [
+        {"round": 1, "score": {"security": 9, "error_handling": 9, "best_practices": 9, "robustness": 8, "total": 35}, "memory_after": {"antibodies": 7, "strategies": 5}},
+        {"round": 2, "score": {"security": 8, "error_handling": 8, "best_practices": 9, "robustness": 7, "total": 32}, "memory_after": {"antibodies": 10, "strategies": 9}},
+        {"round": 3, "score": {"security": 9, "error_handling": 8, "best_practices": 9, "robustness": 8, "total": 34}, "memory_after": {"antibodies": 13, "strategies": 12}},
+        {"round": 4, "score": {"security": 9, "error_handling": 8, "best_practices": 9, "robustness": 9, "total": 35}, "memory_after": {"antibodies": 16, "strategies": 15}},
+        {"round": 5, "score": {"security": 9, "error_handling": 9, "best_practices": 9, "robustness": 9, "total": 36}, "memory_after": {"antibodies": 18, "strategies": 18}},
+        {"round": 6, "score": {"security": 8, "error_handling": 8, "best_practices": 9, "robustness": 8, "total": 33}, "memory_after": {"antibodies": 19, "strategies": 20}},
+        {"round": 7, "score": {"security": 9, "error_handling": 9, "best_practices": 9, "robustness": 9, "total": 36}, "memory_after": {"antibodies": 20, "strategies": 22}},
+        {"round": 8, "score": {"security": 10, "error_handling": 9, "best_practices": 9, "robustness": 9, "total": 37}, "memory_after": {"antibodies": 21, "strategies": 24}}
+      ]
+    },
+    "opus_sp_only": {
+      "label": "Opus + SP only",
+      "description": "Opus generator with 10 Superpowers engineering principles, no immune system. Same 8 tasks, Opus judge.",
+      "rounds": [
+        {"round": 1, "score": {"security": 8, "error_handling": 9, "best_practices": 9, "robustness": 8, "total": 34}},
+        {"round": 2, "score": {"security": 7, "error_handling": 8, "best_practices": 8, "robustness": 5, "total": 28}},
+        {"round": 3, "score": {"security": 8, "error_handling": 8, "best_practices": 8, "robustness": 6, "total": 30}},
+        {"round": 4, "score": {"security": 8, "error_handling": 8, "best_practices": 8, "robustness": 7, "total": 31}},
+        {"round": 5, "score": {"security": 7, "error_handling": 8, "best_practices": 8, "robustness": 8, "total": 31}},
+        {"round": 6, "score": {"security": 8, "error_handling": 8, "best_practices": 8, "robustness": 6, "total": 30}},
+        {"round": 7, "score": {"security": 8, "error_handling": 9, "best_practices": 8, "robustness": 7, "total": 32}},
+        {"round": 8, "score": {"security": 8, "error_handling": 7, "best_practices": 8, "robustness": 6, "total": 29}}
+      ]
+    },
+    "sp_only": {
+      "label": "Sonnet + SP only (v2)",
+      "description": "Sonnet generator with 10 Superpowers principles, no immune system. From v2 benchmark — same 8 tasks, Opus judge.",
+      "rounds": [
+        {"round": 1, "score": {"security": 7, "error_handling": 8, "best_practices": 9, "robustness": 6, "total": 30}},
+        {"round": 2, "score": {"security": 6, "error_handling": 8, "best_practices": 8, "robustness": 7, "total": 29}},
+        {"round": 3, "score": {"security": 7, "error_handling": 8, "best_practices": 9, "robustness": 6, "total": 30}},
+        {"round": 4, "score": {"security": 6, "error_handling": 8, "best_practices": 9, "robustness": 7, "total": 30}},
+        {"round": 5, "score": {"security": 7, "error_handling": 9, "best_practices": 9, "robustness": 8, "total": 33}},
+        {"round": 6, "score": {"security": 7, "error_handling": 8, "best_practices": 8, "robustness": 6, "total": 29}},
+        {"round": 7, "score": {"security": 9, "error_handling": 7, "best_practices": 9, "robustness": 7, "total": 32}},
+        {"round": 8, "score": {"security": 9, "error_handling": 9, "best_practices": 9, "robustness": 9, "total": 36}}
+      ]
+    },
+    "full_memory": {
+      "label": "Opus + SP + Full Memory",
+      "description": "Opus generator with 10 SP principles + full production memory (73 AB + 59 CS) injected from R1. No learning curve — tests the ceiling.",
+      "token_total_estimate": 412749,
+      "tokens_per_round": [35429, 51835, 30948, 34441, 72299, 78448, 76411, 32938],
+      "rounds": [
+        {"round": 1, "score": {"security": 10, "error_handling": 9, "best_practices": 9, "robustness": 9, "total": 37}, "memory_after": {"antibodies": 73, "strategies": 59}},
+        {"round": 2, "score": {"security": 9, "error_handling": 9, "best_practices": 10, "robustness": 9, "total": 37}, "memory_after": {"antibodies": 73, "strategies": 59}},
+        {"round": 3, "score": {"security": 9, "error_handling": 9, "best_practices": 9, "robustness": 9, "total": 36}, "memory_after": {"antibodies": 73, "strategies": 59}},
+        {"round": 4, "score": {"security": 9, "error_handling": 9, "best_practices": 10, "robustness": 9, "total": 37}, "memory_after": {"antibodies": 73, "strategies": 59}},
+        {"round": 5, "score": {"security": 10, "error_handling": 9, "best_practices": 10, "robustness": 9, "total": 38}, "memory_after": {"antibodies": 73, "strategies": 59}},
+        {"round": 6, "score": {"security": 9, "error_handling": 9, "best_practices": 9, "robustness": 9, "total": 36}, "memory_after": {"antibodies": 73, "strategies": 59}},
+        {"round": 7, "score": {"security": 10, "error_handling": 9, "best_practices": 9, "robustness": 9, "total": 37}, "memory_after": {"antibodies": 73, "strategies": 59}},
+        {"round": 8, "score": {"security": 10, "error_handling": 9, "best_practices": 10, "robustness": 9, "total": 38}, "memory_after": {"antibodies": 73, "strategies": 59}}
+      ]
+    }
+  },
+  "summary": {
+    "haiku":       {"r1": 17, "r8": 24, "delta": "+41%", "avg": 23.9, "peak": 27, "tokens": 195000},
+    "sonnet":      {"r1": 23, "r8": 27, "delta": "+17%", "avg": 25.0, "peak": 27, "tokens": 303106},
+    "opus":        {"r1": 27, "r8": 35, "delta": "+30%", "avg": 31.1, "peak": 35, "tokens": 349268},
+    "opus_sp_only":{"r1": 34, "r8": 29, "delta": "-15%", "avg": 30.6, "peak": 34, "tokens": "n/a"},
+    "sp_immune":   {"r1": 35, "r8": 37, "delta": "+6%",  "avg": 34.8, "peak": 37, "tokens": 282426},
+    "sp_only":     {"r1": 30, "r8": 36, "delta": "+20%", "avg": 31.1, "peak": 36, "tokens": "n/a (v2)"},
+    "full_memory": {"r1": 37, "r8": 38, "delta": "+3%",  "avg": 37.0, "peak": 38, "tokens": 412749}
+  }
+}

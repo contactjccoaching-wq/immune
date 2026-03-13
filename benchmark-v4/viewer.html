@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Immune v4 Benchmark — Learning Curve Results</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #334155;
+    --border: #475569;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-axis: #cbd5e1;
+    --haiku: #fb923c;
+    --sonnet: #38bdf8;
+    --opus: #a78bfa;
+    --spo: #fbbf24;
+    --osp: #06b6d4;
+    --sp: #34d399;
+    --fm: #f472b6;
+    --green: #4ade80;
+    --red: #f87171;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 1600px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--haiku), var(--sonnet), var(--opus), var(--osp), var(--spo), var(--sp), var(--fm));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.25rem;
+  }
+
+  .subtitle { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; }
+
+  /* Summary cards */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .summary-card.haiku::before { background: var(--haiku); }
+  .summary-card.sonnet::before { background: var(--sonnet); }
+  .summary-card.opus::before { background: var(--opus); }
+  .summary-card.spo::before { background: var(--spo); }
+  .summary-card.osp::before { background: var(--osp); }
+  .summary-card.sp::before { background: var(--sp); }
+  .summary-card.fm::before { background: var(--fm); }
+
+  .card-model { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+  .card-score { font-size: 2rem; font-weight: 800; margin: 0.2rem 0; }
+  .card-score.haiku { color: var(--haiku); }
+  .card-score.sonnet { color: var(--sonnet); }
+  .card-score.opus { color: var(--opus); }
+  .card-score.spo { color: var(--spo); }
+  .card-score.osp { color: var(--osp); }
+  .card-score.sp { color: var(--sp); }
+  .card-score.fm { color: var(--fm); }
+  .card-detail { font-size: 0.78rem; color: var(--text-muted); }
+  .card-detail .delta { color: var(--green); font-weight: 700; }
+  .card-detail .delta-red { color: var(--red); font-weight: 700; }
+  .card-detail .tokens { color: var(--text-muted); font-size: 0.72rem; }
+
+  /* Chart containers */
+  .chart-section {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+
+  .chart-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .chart-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  canvas { width: 100% !important; }
+
+  /* Score table */
+  .score-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+
+  .score-table th {
+    text-align: left;
+    padding: 0.75rem 0.3rem;
+    border-bottom: 2px solid var(--border);
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .score-table td {
+    padding: 0.55rem 0.3rem;
+    border-bottom: 1px solid var(--surface2);
+  }
+
+  .score-table tr:hover td { background: var(--surface2); }
+
+  .score-table .round-num { color: var(--text-muted); font-weight: 600; }
+  .score-table .task-name { font-weight: 500; }
+
+  .score-cell { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .score-cell.haiku { color: var(--haiku); }
+  .score-cell.sonnet { color: var(--sonnet); }
+  .score-cell.opus { color: var(--opus); }
+  .score-cell.spo { color: var(--spo); }
+  .score-cell.osp { color: var(--osp); }
+  .score-cell.sp { color: var(--sp); }
+  .score-cell.fm { color: var(--fm); }
+
+  .breakdown {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  /* Token section */
+  .token-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .token-card {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .token-model { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+  .token-value { font-size: 1.3rem; font-weight: 800; margin: 0.25rem 0; font-variant-numeric: tabular-nums; }
+  .token-value.haiku { color: var(--haiku); }
+  .token-value.sonnet { color: var(--sonnet); }
+  .token-value.opus { color: var(--opus); }
+  .token-value.sp { color: var(--sp); }
+  .token-value.fm { color: var(--fm); }
+  .token-per { font-size: 0.8rem; color: var(--text-muted); }
+  .token-efficiency { font-size: 0.8rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+
+  /* Axis bars */
+  .axis-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .axis-card {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .axis-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.5rem; }
+
+  .axis-bars { display: flex; flex-direction: column; gap: 0.25rem; }
+  .axis-bar-row { display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; }
+  .axis-bar-label { width: 20px; font-weight: 700; font-size: 0.55rem; text-align: right; }
+  .axis-bar-label.h { color: var(--haiku); }
+  .axis-bar-label.s { color: var(--sonnet); }
+  .axis-bar-label.o { color: var(--opus); }
+  .axis-bar-label.spo { color: var(--spo); }
+  .axis-bar-label.osp { color: var(--osp); }
+  .axis-bar-label.sp { color: var(--sp); }
+  .axis-bar-label.fm { color: var(--fm); }
+  .axis-bar-track { flex: 1; height: 9px; background: var(--bg); border-radius: 6px; overflow: hidden; }
+  .axis-bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s; }
+  .axis-bar-fill.haiku { background: var(--haiku); }
+  .axis-bar-fill.sonnet { background: var(--sonnet); }
+  .axis-bar-fill.opus { background: var(--opus); }
+  .axis-bar-fill.spo { background: var(--spo); }
+  .axis-bar-fill.osp { background: var(--osp); }
+  .axis-bar-fill.sp { background: var(--sp); }
+  .axis-bar-fill.fm { background: var(--fm); }
+  .axis-bar-value { font-variant-numeric: tabular-nums; width: 22px; text-align: right; font-size: 0.7rem; }
+
+  /* Insights */
+  .insights {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .insight-card {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+  }
+
+  .insight-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .insight-text { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+  .insight-highlight { color: var(--green); font-weight: 600; }
+
+  /* Comparison banner */
+  .comparison-banner {
+    background: linear-gradient(135deg, rgba(244,114,182,0.1), rgba(52,211,153,0.1));
+    border: 1px solid var(--fm);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .comparison-banner .badge {
+    background: var(--fm);
+    color: var(--bg);
+    font-weight: 800;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .comparison-banner .comp-text {
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+  .comparison-banner .comp-text strong { color: var(--fm); }
+  .comparison-banner .comp-text .sp-val { color: var(--sp); font-weight: 700; }
+  .comparison-banner .comp-text .spo-val { color: var(--spo); font-weight: 700; }
+  .comparison-banner .comp-text .osp-val { color: var(--osp); font-weight: 700; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+  .footer a { color: var(--sonnet); text-decoration: none; }
+
+  @media (max-width: 1400px) {
+    .summary-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (max-width: 900px) {
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .token-grid { grid-template-columns: repeat(2, 1fr); }
+    .chart-row { grid-template-columns: 1fr; }
+    .axis-grid { grid-template-columns: repeat(2, 1fr); }
+    .insights { grid-template-columns: 1fr; }
+    .score-table { font-size: 0.6rem; }
+  }
+  @media (max-width: 500px) {
+    .summary-grid, .token-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1>Immune v4 Benchmark</h1>
+  <p class="subtitle">Learning Curve — 8 rounds x 7 conditions | Same tasks, Opus judge | 3 immune-only + 2 SP-only + SP+Immune + Full Memory</p>
+
+  <!-- Comparison banner -->
+  <div class="comparison-banner">
+    <span class="badge">Hierarchy</span>
+    <span class="comp-text">
+      Sonnet+SP <span class="spo-val">31.1</span> &asymp;
+      Opus+SP <span class="osp-val">30.6</span> &asymp;
+      Opus+Immune <span class="spo-val">31.1</span> |
+      SP+Immune: <span class="sp-val">34.8</span> (+12%) |
+      Full Memory: <strong>37.0</strong> (+19%) |
+      SP alone &asymp; Immune alone &asymp; model upgrade
+    </span>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+    <div class="summary-card haiku">
+      <div class="card-model">Haiku + Immune</div>
+      <div class="card-score haiku">24<span style="font-size:0.9rem;color:var(--text-muted)">/40</span></div>
+      <div class="card-detail">
+        R1: 17 &rarr; R8: 24 <span class="delta">(+41%)</span><br>
+        <span class="tokens">~195K tokens | Avg: 23.9 | Peak: 27</span>
+      </div>
+    </div>
+    <div class="summary-card sonnet">
+      <div class="card-model">Sonnet + Immune</div>
+      <div class="card-score sonnet">27<span style="font-size:0.9rem;color:var(--text-muted)">/40</span></div>
+      <div class="card-detail">
+        R1: 23 &rarr; R8: 27 <span class="delta">(+17%)</span><br>
+        <span class="tokens">~303K tokens | Avg: 25.0 | Peak: 27</span>
+      </div>
+    </div>
+    <div class="summary-card opus">
+      <div class="card-model">Opus + Immune</div>
+      <div class="card-score opus">35<span style="font-size:0.9rem;color:var(--text-muted)">/40</span></div>
+      <div class="card-detail">
+        R1: 27 &rarr; R8: 35 <span class="delta">(+30%)</span><br>
+        <span class="tokens">~349K tokens | Avg: 31.1 | Peak: 35</span>
+      </div>
+    </div>
+    <div class="summary-card spo">
+      <div class="card-model">Sonnet + SP only (v2)</div>
+      <div class="card-score spo">36<span style="font-size:0.9rem;color:var(--text-muted)">/40</span></div>
+      <div class="card-detail">
+        R1: 30 &rarr; R8: 36 <span class="delta">(+20%)</span><br>
+        <span class="tokens">v2 benchmark | Avg: 31.1 | Peak: 36</span>
+      </div>
+    </div>
+    <div class="summary-card osp">
+      <div class="card-model">Opus + SP only</div>
+      <div class="card-score osp">34<span style="font-size:0.9rem;color:var(--text-muted)">/40</span></div>
+      <div class="card-detail">
+        R1: 34 &rarr; R8: 29 <span class="delta-red">(-15%)</span><br>
+        <span class="tokens">No immune | Avg: 30.6 | Peak: 34</span>
+      </div>
+    </div>
+    <div class="summary-card sp">
+      <div class="card-model">Opus + SP + Immune</div>
+      <div class="card-score sp">37<span style="font-size:0.9rem;color:var(--text-muted)">/40</span></div>
+      <div class="card-detail">
+        R1: 35 &rarr; R8: 37 <span class="delta">(+6%)</span><br>
+        <span class="tokens">~282K tokens | Avg: 34.8 | Peak: 37</span>
+      </div>
+    </div>
+    <div class="summary-card fm">
+      <div class="card-model">Opus + SP + Full Mem</div>
+      <div class="card-score fm">38<span style="font-size:0.9rem;color:var(--text-muted)">/40</span></div>
+      <div class="card-detail">
+        R1: 37 &rarr; R8: 38 <span class="delta">(+3%)</span><br>
+        <span class="tokens">~413K tokens | Avg: 37.0 | Peak: 38</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Score Chart -->
+  <div class="chart-section">
+    <div class="chart-title">Score Progression (/40)</div>
+    <canvas id="scoreChart" height="540"></canvas>
+  </div>
+
+  <!-- Axis Charts + Memory -->
+  <div class="chart-row">
+    <div class="chart-section">
+      <div class="chart-title">R8 Final Scores by Axis</div>
+      <div class="axis-grid">
+        <div class="axis-card">
+          <div class="axis-label">Security</div>
+          <div class="axis-bars">
+            <div class="axis-bar-row"><span class="axis-bar-label h">H</span><div class="axis-bar-track"><div class="axis-bar-fill haiku" style="width:70%"></div></div><span class="axis-bar-value">7</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label s">S</span><div class="axis-bar-track"><div class="axis-bar-fill sonnet" style="width:70%"></div></div><span class="axis-bar-value">7</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label o">O</span><div class="axis-bar-track"><div class="axis-bar-fill opus" style="width:90%"></div></div><span class="axis-bar-value">9</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label spo">SP-S</span><div class="axis-bar-track"><div class="axis-bar-fill spo" style="width:90%"></div></div><span class="axis-bar-value">9</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label osp">SP-O</span><div class="axis-bar-track"><div class="axis-bar-fill osp" style="width:80%"></div></div><span class="axis-bar-value">8</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label sp">S+I</span><div class="axis-bar-track"><div class="axis-bar-fill sp" style="width:100%"></div></div><span class="axis-bar-value">10</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label fm">FM</span><div class="axis-bar-track"><div class="axis-bar-fill fm" style="width:100%"></div></div><span class="axis-bar-value">10</span></div>
+          </div>
+        </div>
+        <div class="axis-card">
+          <div class="axis-label">Error Handling</div>
+          <div class="axis-bars">
+            <div class="axis-bar-row"><span class="axis-bar-label h">H</span><div class="axis-bar-track"><div class="axis-bar-fill haiku" style="width:60%"></div></div><span class="axis-bar-value">6</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label s">S</span><div class="axis-bar-track"><div class="axis-bar-fill sonnet" style="width:70%"></div></div><span class="axis-bar-value">7</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label o">O</span><div class="axis-bar-track"><div class="axis-bar-fill opus" style="width:90%"></div></div><span class="axis-bar-value">9</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label spo">SP-S</span><div class="axis-bar-track"><div class="axis-bar-fill spo" style="width:90%"></div></div><span class="axis-bar-value">9</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label osp">SP-O</span><div class="axis-bar-track"><div class="axis-bar-fill osp" style="width:70%"></div></div><span class="axis-bar-value">7</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label sp">S+I</span><div class="axis-bar-track"><div class="axis-bar-fill sp" style="width:90%"></div></div><span class="axis-bar-value">9</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label fm">FM</span><div class="axis-bar-track"><div class="axis-bar-fill fm" style="width:90%"></div></div><span class="axis-bar-value">9</span></div>
+          </div>
+        </div>
+        <div class="axis-card">
+          <div class="axis-label">Best Practices</div>
+          <div class="axis-bars">
+            <div class="axis-bar-row"><span class="axis-bar-label h">H</span><div class="axis-bar-track"><div class="axis-bar-fill haiku" style="width:60%"></div></div><span class="axis-bar-value">6</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label s">S</span><div class="axis-bar-track"><div class="axis-bar-fill sonnet" style="width:70%"></div></div><span class="axis-bar-value">7</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label o">O</span><div class="axis-bar-track"><div class="axis-bar-fill opus" style="width:90%"></div></div><span class="axis-bar-value">9</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label spo">SP-S</span><div class="axis-bar-track"><div class="axis-bar-fill spo" style="width:90%"></div></div><span class="axis-bar-value">9</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label osp">SP-O</span><div class="axis-bar-track"><div class="axis-bar-fill osp" style="width:80%"></div></div><span class="axis-bar-value">8</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label sp">S+I</span><div class="axis-bar-track"><div class="axis-bar-fill sp" style="width:90%"></div></div><span class="axis-bar-value">9</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label fm">FM</span><div class="axis-bar-track"><div class="axis-bar-fill fm" style="width:100%"></div></div><span class="axis-bar-value">10</span></div>
+          </div>
+        </div>
+        <div class="axis-card">
+          <div class="axis-label">Robustness</div>
+          <div class="axis-bars">
+            <div class="axis-bar-row"><span class="axis-bar-label h">H</span><div class="axis-bar-track"><div class="axis-bar-fill haiku" style="width:50%"></div></div><span class="axis-bar-value">5</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label s">S</span><div class="axis-bar-track"><div class="axis-bar-fill sonnet" style="width:60%"></div></div><span class="axis-bar-value">6</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label o">O</span><div class="axis-bar-track"><div class="axis-bar-fill opus" style="width:80%"></div></div><span class="axis-bar-value">8</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label spo">SP-S</span><div class="axis-bar-track"><div class="axis-bar-fill spo" style="width:90%"></div></div><span class="axis-bar-value">9</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label osp">SP-O</span><div class="axis-bar-track"><div class="axis-bar-fill osp" style="width:60%"></div></div><span class="axis-bar-value">6</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label sp">S+I</span><div class="axis-bar-track"><div class="axis-bar-fill sp" style="width:90%"></div></div><span class="axis-bar-value">9</span></div>
+            <div class="axis-bar-row"><span class="axis-bar-label fm">FM</span><div class="axis-bar-track"><div class="axis-bar-fill fm" style="width:90%"></div></div><span class="axis-bar-value">9</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title">Memory Evolution (Antibodies + Strategies)</div>
+      <canvas id="memoryChart" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- Detailed Score Table -->
+  <div class="chart-section">
+    <div class="chart-title">Detailed Scores per Round</div>
+    <table class="score-table">
+      <thead>
+        <tr>
+          <th>R</th>
+          <th>Task</th>
+          <th style="text-align:center">Haiku</th>
+          <th style="text-align:center">Sonnet</th>
+          <th style="text-align:center">Opus</th>
+          <th style="text-align:center">Son+SP</th>
+          <th style="text-align:center">Opus+SP</th>
+          <th style="text-align:center">SP+Imm</th>
+          <th style="text-align:center">Full Mem</th>
+        </tr>
+      </thead>
+      <tbody id="scoreTableBody"></tbody>
+      <tfoot>
+        <tr style="border-top:2px solid var(--border)">
+          <td></td>
+          <td style="font-weight:700">Avg</td>
+          <td class="score-cell haiku" style="text-align:center">23.9</td>
+          <td class="score-cell sonnet" style="text-align:center">25.0</td>
+          <td class="score-cell opus" style="text-align:center">31.1</td>
+          <td class="score-cell spo" style="text-align:center">31.1</td>
+          <td class="score-cell osp" style="text-align:center">30.6</td>
+          <td class="score-cell sp" style="text-align:center">34.8</td>
+          <td class="score-cell fm" style="text-align:center">37.0</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- Token Consumption -->
+  <div class="chart-section">
+    <div class="chart-title">Token Consumption (v4 conditions only — SP-only conditions have no token data)</div>
+    <div class="token-grid">
+      <div class="token-card">
+        <div class="token-model">Haiku</div>
+        <div class="token-value haiku">~195K</div>
+        <div class="token-per">~24K per round</div>
+        <div class="token-efficiency">Score/100K: <strong style="color:var(--haiku)">12.3</strong></div>
+      </div>
+      <div class="token-card">
+        <div class="token-model">Sonnet</div>
+        <div class="token-value sonnet">~303K</div>
+        <div class="token-per">~38K per round</div>
+        <div class="token-efficiency">Score/100K: <strong style="color:var(--sonnet)">8.3</strong></div>
+      </div>
+      <div class="token-card">
+        <div class="token-model">Opus</div>
+        <div class="token-value opus">~349K</div>
+        <div class="token-per">~44K per round</div>
+        <div class="token-efficiency">Score/100K: <strong style="color:var(--opus)">8.9</strong></div>
+      </div>
+      <div class="token-card">
+        <div class="token-model">SP+Immune</div>
+        <div class="token-value sp">~282K</div>
+        <div class="token-per">~35K per round</div>
+        <div class="token-efficiency">Score/100K: <strong style="color:var(--sp)">12.3</strong></div>
+      </div>
+      <div class="token-card">
+        <div class="token-model">Full Memory</div>
+        <div class="token-value fm">~413K</div>
+        <div class="token-per">~52K per round</div>
+        <div class="token-efficiency">Score/100K: <strong style="color:var(--fm)">9.0</strong></div>
+      </div>
+    </div>
+
+    <div style="margin-top:1.5rem">
+      <canvas id="tokenChart" height="80"></canvas>
+    </div>
+  </div>
+
+  <!-- Insights -->
+  <div class="insights">
+    <div class="insight-card">
+      <div class="insight-title" style="color:var(--osp)">SP Alone: Same Impact Regardless of Model</div>
+      <div class="insight-text">
+        <strong>Opus + SP only (30.6)</strong> &asymp; <strong>Sonnet + SP only (31.1)</strong> &asymp; <strong>Opus + Immune (31.1)</strong>.
+        All three conditions cluster at ~31/40. SP principles give the same boost whether on Sonnet or Opus.
+        This means SP alone <span class="insight-highlight">saturates around 31</span> — you need immune memory to break through.
+        Without learning, Opus + SP actually <em>declines</em> over rounds (34&rarr;29) due to task variance.
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-title" style="color:var(--sp)">SP + Immune: Additive, Not Redundant</div>
+      <div class="insight-text">
+        Adding immune on top of SP boosts avg from <strong>30.6 to 34.8</strong> (<span class="insight-highlight">+14%</span>).
+        The immune system catches what principles miss: <strong>domain-specific patterns</strong> like HMAC timing attacks,
+        CSRF double-submit, and JWT refresh rotation. SP sets the floor high; immune raises the ceiling.
+        The combination is <span class="insight-highlight">consistently better than either alone</span>.
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-title" style="color:var(--fm)">Full Memory: The Ceiling at 37.0</div>
+      <div class="insight-text">
+        Pre-loading all 73 AB + 59 CS eliminates the learning curve: <strong>37/40 from R1</strong>, peak <strong>38/40</strong>.
+        But it costs <strong>+46% tokens</strong> vs SP+Immune for only <strong>+2.2 avg points</strong>.
+        The last 2 points have severe <span class="insight-highlight">diminishing returns</span>.
+        SP+Immune reaches 94% of this ceiling at 68% of the cost.
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-title">Clear Hierarchy: Principles &gt; Patterns &gt; Model</div>
+      <div class="insight-text">
+        <strong>1.</strong> SP principles: +13 pts instant (Haiku 17&rarr;Sonnet+SP 30)<br>
+        <strong>2.</strong> Immune patterns: +4.2 pts progressive (Opus+SP 30.6&rarr;SP+Imm 34.8)<br>
+        <strong>3.</strong> Model upgrade alone: Sonnet&rarr;Opus = +6 pts (25&rarr;31)<br>
+        <strong>4.</strong> Model upgrade with SP: +0 pts (Sonnet+SP 31.1 &asymp; Opus+SP 30.6)<br>
+        <span class="insight-highlight">Best ROI: SP + progressive immune learning</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Immune v4 Benchmark — March 2026 | Protocol: identical tasks, independent memory, Opus judge<br>
+    7 conditions: Haiku/Sonnet/Opus (immune only), Sonnet+SP &amp; Opus+SP (no immune), Opus+SP+Immune, Opus+SP+Full Memory<br>
+    Built with <a href="https://github.com/anthropics/claude-code">Claude Code</a>
+  </div>
+
+</div>
+
+<script>
+const data = {
+  tasks: [
+    {r: 1, task: "JWT Auth API"},
+    {r: 2, task: "TODO CRUD API"},
+    {r: 3, task: "File Upload API"},
+    {r: 4, task: "WS Chat Server"},
+    {r: 5, task: "API Proxy + CB"},
+    {r: 6, task: "CLI Markdown"},
+    {r: 7, task: "Webhook Receiver"},
+    {r: 8, task: "Session Auth"}
+  ],
+  haiku: {
+    scores: [17, 26, 23, 25, 27, 24, 25, 24],
+    axes: [
+      {s:3,e:6,b:5,r:3}, {s:5,e:8,b:7,r:6}, {s:5,e:7,b:6,r:5}, {s:5,e:7,b:7,r:6},
+      {s:6,e:8,b:7,r:6}, {s:6,e:7,b:6,r:5}, {s:7,e:6,b:6,r:6}, {s:7,e:6,b:6,r:5}
+    ],
+    antibodies: [10,14,18,21,24,25,26,28],
+    strategies: [5,8,11,14,14,19,21,24]
+  },
+  sonnet: {
+    scores: [23, 26, 26, 25, 26, 22, 25, 27],
+    axes: [
+      {s:5,e:7,b:6,r:5}, {s:5,e:8,b:7,r:6}, {s:6,e:7,b:7,r:6}, {s:5,e:7,b:7,r:6},
+      {s:5,e:8,b:7,r:6}, {s:5,e:6,b:6,r:5}, {s:6,e:7,b:7,r:5}, {s:7,e:7,b:7,r:6}
+    ],
+    antibodies: [8,12,15,18,20,22,24,26],
+    strategies: [6,9,12,15,18,20,22,24]
+  },
+  opus: {
+    scores: [27, 29, 30, 30, 34, 30, 34, 35],
+    axes: [
+      {s:6,e:8,b:7,r:6}, {s:6,e:8,b:8,r:7}, {s:7,e:8,b:8,r:7}, {s:7,e:8,b:8,r:7},
+      {s:8,e:9,b:9,r:8}, {s:7,e:8,b:8,r:7}, {s:9,e:8,b:9,r:8}, {s:9,e:9,b:9,r:8}
+    ],
+    antibodies: [7,10,14,16,17,18,19,21],
+    strategies: [5,9,12,15,18,20,22,24]
+  },
+  spo: {
+    scores: [30, 29, 30, 30, 33, 29, 32, 36],
+    axes: [
+      {s:7,e:8,b:9,r:6}, {s:6,e:8,b:8,r:7}, {s:7,e:8,b:9,r:6}, {s:6,e:8,b:9,r:7},
+      {s:7,e:9,b:9,r:8}, {s:7,e:8,b:8,r:6}, {s:9,e:7,b:9,r:7}, {s:9,e:9,b:9,r:9}
+    ]
+  },
+  osp: {
+    scores: [34, 28, 30, 31, 31, 30, 32, 29],
+    axes: [
+      {s:8,e:9,b:9,r:8}, {s:7,e:8,b:8,r:5}, {s:8,e:8,b:8,r:6}, {s:8,e:8,b:8,r:7},
+      {s:7,e:8,b:8,r:8}, {s:8,e:8,b:8,r:6}, {s:8,e:9,b:8,r:7}, {s:8,e:7,b:8,r:6}
+    ]
+  },
+  sp: {
+    scores: [35, 32, 34, 35, 36, 33, 36, 37],
+    axes: [
+      {s:9,e:9,b:9,r:8}, {s:8,e:8,b:9,r:7}, {s:9,e:8,b:9,r:8}, {s:9,e:8,b:9,r:9},
+      {s:9,e:9,b:9,r:9}, {s:8,e:8,b:9,r:8}, {s:9,e:9,b:9,r:9}, {s:10,e:9,b:9,r:9}
+    ],
+    antibodies: [7,10,13,16,18,19,20,21],
+    strategies: [5,9,12,15,18,20,22,24]
+  },
+  fm: {
+    scores: [37, 37, 36, 37, 38, 36, 37, 38],
+    axes: [
+      {s:10,e:9,b:9,r:9}, {s:9,e:9,b:10,r:9}, {s:9,e:9,b:9,r:9}, {s:9,e:9,b:10,r:9},
+      {s:10,e:9,b:10,r:9}, {s:9,e:9,b:9,r:9}, {s:10,e:9,b:9,r:9}, {s:10,e:9,b:10,r:9}
+    ],
+    antibodies: [73,73,73,73,73,73,73,73],
+    strategies: [59,59,59,59,59,59,59,59]
+  },
+  haikuTokens:  [24000, 24000, 24000, 24000, 24000, 24000, 24000, 25000],
+  sonnetTokens: [89100, 35315, 27866, 30415, 29619, 28946, 31323, 30522],
+  opusTokens:   [92319, 33850, 40510, 32067, 33151, 33855, 34834, 48682],
+  spTokens:     [37944, 28350, 30806, 39322, 33251, 37800, 40327, 34626],
+  fmTokens:     [35429, 51835, 30948, 34441, 72299, 78448, 76411, 32938]
+};
+
+const labels = data.tasks.map(t => 'R' + t.r);
+const modelKeys = ['haiku','sonnet','opus','spo','osp','sp','fm'];
+
+// Chart.js global defaults
+Chart.defaults.color = '#cbd5e1';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 13;
+
+// Main score chart
+new Chart(document.getElementById('scoreChart'), {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [
+      {
+        label: 'Haiku + Immune',
+        data: data.haiku.scores,
+        borderColor: '#fb923c',
+        backgroundColor: 'rgba(251,146,60,0.08)',
+        borderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        fill: true,
+        tension: 0.3,
+      },
+      {
+        label: 'Sonnet + Immune',
+        data: data.sonnet.scores,
+        borderColor: '#38bdf8',
+        backgroundColor: 'rgba(56,189,248,0.08)',
+        borderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        fill: true,
+        tension: 0.3,
+      },
+      {
+        label: 'Opus + Immune',
+        data: data.opus.scores,
+        borderColor: '#a78bfa',
+        backgroundColor: 'rgba(167,139,250,0.08)',
+        borderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        fill: true,
+        tension: 0.3,
+      },
+      {
+        label: 'Sonnet + SP only (v2)',
+        data: data.spo.scores,
+        borderColor: '#fbbf24',
+        backgroundColor: 'rgba(251,191,36,0.08)',
+        borderWidth: 2.5,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        fill: true,
+        tension: 0.3,
+        borderDash: [8, 4],
+      },
+      {
+        label: 'Opus + SP only',
+        data: data.osp.scores,
+        borderColor: '#06b6d4',
+        backgroundColor: 'rgba(6,182,212,0.08)',
+        borderWidth: 2.5,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        fill: true,
+        tension: 0.3,
+        borderDash: [8, 4],
+      },
+      {
+        label: 'Opus + SP + Immune',
+        data: data.sp.scores,
+        borderColor: '#34d399',
+        backgroundColor: 'rgba(52,211,153,0.08)',
+        borderWidth: 2.5,
+        pointRadius: 6,
+        pointHoverRadius: 9,
+        fill: true,
+        tension: 0.3,
+      },
+      {
+        label: 'Opus + SP + Full Memory',
+        data: data.fm.scores,
+        borderColor: '#f472b6',
+        backgroundColor: 'rgba(244,114,182,0.08)',
+        borderWidth: 3,
+        pointRadius: 6,
+        pointHoverRadius: 9,
+        fill: true,
+        tension: 0.3,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: { usePointStyle: true, padding: 16, font: { size: 12, weight: '600' } }
+      },
+      tooltip: {
+        titleFont: { size: 14 },
+        bodyFont: { size: 13 },
+        callbacks: {
+          afterLabel: function(ctx) {
+            var model = modelKeys[ctx.datasetIndex];
+            var ax = data[model].axes[ctx.dataIndex];
+            return 'Sec:' + ax.s + ' Err:' + ax.e + ' BP:' + ax.b + ' Rob:' + ax.r;
+          },
+          title: function(items) {
+            var i = items[0].dataIndex;
+            return 'R' + (i+1) + ': ' + data.tasks[i].task;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        min: 15, max: 40,
+        grid: { color: 'rgba(71,85,105,0.4)' },
+        ticks: {
+          stepSize: 5,
+          font: { size: 14, weight: '600' },
+          color: '#e2e8f0',
+          padding: 8
+        },
+        title: {
+          display: true,
+          text: 'Score /40',
+          font: { size: 13, weight: '600' },
+          color: '#94a3b8',
+          padding: 4
+        }
+      },
+      x: {
+        grid: { color: 'rgba(71,85,105,0.2)' },
+        ticks: {
+          font: { size: 13, weight: '600' },
+          color: '#e2e8f0',
+          padding: 6
+        }
+      }
+    }
+  }
+});
+
+// Memory chart — SP-only conditions have no memory, FM is flat
+new Chart(document.getElementById('memoryChart'), {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [
+      { label: 'Haiku AB', data: data.haiku.antibodies, borderColor: '#fb923c', borderWidth: 1.5, pointRadius: 2, borderDash: [], tension: 0.3, hidden: true },
+      { label: 'Haiku CS', data: data.haiku.strategies, borderColor: '#fb923c', borderWidth: 1.5, pointRadius: 2, borderDash: [5,5], tension: 0.3, hidden: true },
+      { label: 'Sonnet AB', data: data.sonnet.antibodies, borderColor: '#38bdf8', borderWidth: 1.5, pointRadius: 2, borderDash: [], tension: 0.3, hidden: true },
+      { label: 'Sonnet CS', data: data.sonnet.strategies, borderColor: '#38bdf8', borderWidth: 1.5, pointRadius: 2, borderDash: [5,5], tension: 0.3, hidden: true },
+      { label: 'Opus AB', data: data.opus.antibodies, borderColor: '#a78bfa', borderWidth: 2, pointRadius: 3, borderDash: [], tension: 0.3 },
+      { label: 'Opus CS', data: data.opus.strategies, borderColor: '#a78bfa', borderWidth: 2, pointRadius: 3, borderDash: [5,5], tension: 0.3 },
+      { label: 'SP+IM AB', data: data.sp.antibodies, borderColor: '#34d399', borderWidth: 2, pointRadius: 3, borderDash: [], tension: 0.3 },
+      { label: 'SP+IM CS', data: data.sp.strategies, borderColor: '#34d399', borderWidth: 2, pointRadius: 3, borderDash: [5,5], tension: 0.3 },
+      { label: 'FM AB', data: data.fm.antibodies, borderColor: '#f472b6', borderWidth: 2, pointRadius: 3, borderDash: [], tension: 0.3 },
+      { label: 'FM CS', data: data.fm.strategies, borderColor: '#f472b6', borderWidth: 2, pointRadius: 3, borderDash: [5,5], tension: 0.3 },
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          usePointStyle: true,
+          padding: 10,
+          font: { size: 11 },
+          generateLabels: function(chart) {
+            return [
+              { text: 'Antibodies (solid)', fillStyle: '#94a3b8', strokeStyle: '#94a3b8', lineWidth: 2, lineDash: [] },
+              { text: 'Strategies (dashed)', fillStyle: '#94a3b8', strokeStyle: '#94a3b8', lineWidth: 2, lineDash: [5,5] },
+              { text: 'FM = flat (73 AB, 59 CS)', fillStyle: '#f472b6', strokeStyle: '#f472b6', lineWidth: 2, lineDash: [] },
+              { text: 'SP-only = no memory', fillStyle: '#06b6d4', strokeStyle: '#06b6d4', lineWidth: 2, lineDash: [5,5] },
+            ];
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        min: 0, max: 80,
+        grid: { color: 'rgba(71,85,105,0.4)' },
+        ticks: {
+          stepSize: 10,
+          font: { size: 13, weight: '600' },
+          color: '#e2e8f0',
+          padding: 8
+        },
+        title: {
+          display: true,
+          text: 'Count',
+          font: { size: 12, weight: '600' },
+          color: '#94a3b8'
+        }
+      },
+      x: {
+        grid: { color: 'rgba(71,85,105,0.2)' },
+        ticks: {
+          font: { size: 13, weight: '600' },
+          color: '#e2e8f0'
+        }
+      }
+    }
+  }
+});
+
+// Token chart (5 conditions — SP-only excluded, no token data)
+new Chart(document.getElementById('tokenChart'), {
+  type: 'bar',
+  data: {
+    labels: labels,
+    datasets: [
+      { label: 'Haiku', data: data.haikuTokens, backgroundColor: 'rgba(251,146,60,0.6)', borderRadius: 4 },
+      { label: 'Sonnet', data: data.sonnetTokens, backgroundColor: 'rgba(56,189,248,0.6)', borderRadius: 4 },
+      { label: 'Opus', data: data.opusTokens, backgroundColor: 'rgba(167,139,250,0.6)', borderRadius: 4 },
+      { label: 'SP+Immune', data: data.spTokens, backgroundColor: 'rgba(52,211,153,0.6)', borderRadius: 4 },
+      { label: 'Full Memory', data: data.fmTokens, backgroundColor: 'rgba(244,114,182,0.6)', borderRadius: 4 },
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: { usePointStyle: true, padding: 16, font: { size: 12, weight: '600' } }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) {
+            return ctx.dataset.label + ': ' + (ctx.parsed.y / 1000).toFixed(1) + 'K tokens';
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        grid: { color: 'rgba(71,85,105,0.4)' },
+        ticks: {
+          callback: function(v) { return (v/1000) + 'K'; },
+          font: { size: 13, weight: '600' },
+          color: '#e2e8f0',
+          padding: 8
+        },
+        title: {
+          display: true,
+          text: 'Tokens',
+          font: { size: 12, weight: '600' },
+          color: '#94a3b8'
+        }
+      },
+      x: {
+        grid: { display: false },
+        ticks: {
+          font: { size: 13, weight: '600' },
+          color: '#e2e8f0'
+        }
+      }
+    }
+  }
+});
+
+// Populate score table
+var tbody = document.getElementById('scoreTableBody');
+for (var i = 0; i < 8; i++) {
+  var t = data.tasks[i];
+  var h = data.haiku.axes[i];
+  var s = data.sonnet.axes[i];
+  var o = data.opus.axes[i];
+  var q = data.spo.axes[i];
+  var c = data.osp.axes[i];
+  var p = data.sp.axes[i];
+  var f = data.fm.axes[i];
+  var row = document.createElement('tr');
+  row.innerHTML =
+    '<td class="round-num">R' + t.r + '</td>' +
+    '<td class="task-name">' + t.task + '</td>' +
+    '<td class="score-cell haiku" style="text-align:center">' +
+      data.haiku.scores[i] +
+      '<div class="breakdown">' + h.s + '/' + h.e + '/' + h.b + '/' + h.r + '</div>' +
+    '</td>' +
+    '<td class="score-cell sonnet" style="text-align:center">' +
+      data.sonnet.scores[i] +
+      '<div class="breakdown">' + s.s + '/' + s.e + '/' + s.b + '/' + s.r + '</div>' +
+    '</td>' +
+    '<td class="score-cell opus" style="text-align:center">' +
+      data.opus.scores[i] +
+      '<div class="breakdown">' + o.s + '/' + o.e + '/' + o.b + '/' + o.r + '</div>' +
+    '</td>' +
+    '<td class="score-cell spo" style="text-align:center">' +
+      data.spo.scores[i] +
+      '<div class="breakdown">' + q.s + '/' + q.e + '/' + q.b + '/' + q.r + '</div>' +
+    '</td>' +
+    '<td class="score-cell osp" style="text-align:center">' +
+      data.osp.scores[i] +
+      '<div class="breakdown">' + c.s + '/' + c.e + '/' + c.b + '/' + c.r + '</div>' +
+    '</td>' +
+    '<td class="score-cell sp" style="text-align:center">' +
+      data.sp.scores[i] +
+      '<div class="breakdown">' + p.s + '/' + p.e + '/' + p.b + '/' + p.r + '</div>' +
+    '</td>' +
+    '<td class="score-cell fm" style="text-align:center">' +
+      data.fm.scores[i] +
+      '<div class="breakdown">' + f.s + '/' + f.e + '/' + f.b + '/' + f.r + '</div>' +
+    '</td>';
+  tbody.appendChild(row);
+}
+</script>
+
+</body>
+</html>

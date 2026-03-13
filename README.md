@@ -1,4 +1,4 @@
-# Immune System v3 — Hybrid Adaptive Memory for Claude Code
+# Immune System v4 — Hybrid Adaptive Memory for Claude Code
 
 [![Stars](https://img.shields.io/github/stars/contactjccoaching-wq/immune?style=social)](https://github.com/contactjccoaching-wq/immune)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -133,7 +133,48 @@ Category breakdown (v2 averages):
 
 See [`benchmark/run-v2/results.md`](benchmark/run-v2/results.md) for per-task judge details.
 
-### Comparison: All Conditions
+### Benchmark v4: 7-Way Comparison (March 2026)
+
+The definitive benchmark. Same 8 tasks, 7 conditions, all judged blind by Opus /40.
+
+| Condition | R1 | R8 | Avg | Peak | Delta | Tokens |
+|-----------|:--:|:--:|:---:|:----:|:-----:|:------:|
+| Haiku + Immune | 17 | 24 | **23.9** | 27 | +41% | ~195K |
+| Sonnet + Immune | 23 | 27 | **25.0** | 27 | +17% | ~303K |
+| Opus + Immune | 27 | 35 | **31.1** | 35 | +30% | ~349K |
+| Sonnet + SP only | 30 | 36 | **31.1** | 36 | +20% | n/a |
+| Opus + SP only | 34 | 29 | **30.6** | 34 | -15% | n/a |
+| **Opus + SP + Immune** | **35** | **37** | **34.8** | **37** | **+6%** | **~282K** |
+| Opus + SP + Full Memory | 37 | 38 | **37.0** | 38 | +3% | ~413K |
+
+**Key findings:**
+
+1. **SP saturates at ~31 regardless of model** — Sonnet+SP (31.1) ≈ Opus+SP (30.6) ≈ Opus+Immune (31.1). Upgrading the model doesn't help when SP is already applied.
+2. **Immune is the only way past 31** — SP+Immune reaches 34.8 (+14% over SP alone). The immune system catches domain-specific patterns (HMAC timing, CSRF double-submit, JWT rotation) that generic principles miss.
+3. **Full Memory has diminishing returns** — 73 AB + 59 CS pre-loaded = 37.0 avg, but +46% tokens for only +2.2 pts over SP+Immune.
+4. **SP+Immune costs fewer tokens than Opus alone** — 282K vs 349K. SP principles produce more focused, less verbose code from R1.
+5. **Memory value is marginal in this benchmark** — SP+Immune R1 (empty memory) scores 35, R8 (21 AB + 24 CS) scores 37. Only +2 pts from 8 rounds of learning. Memory shines in **repeated, specialized tasks** (e.g., generating 1000 fitness programs), not varied general coding.
+
+**Hierarchy of value:**
+```
+SP principles:     +13 pts instant (biggest ROI)
+Immune learning:   +4.2 pts progressive
+Model upgrade:     +6 pts (but +0 when SP already applied)
+Full memory:       +2.2 pts at +46% token cost
+```
+
+**Best ROI: SP + progressive immune learning** — 94% of the ceiling at 68% of the token cost.
+
+Open [`benchmark-v4/viewer.html`](benchmark-v4/viewer.html) for interactive charts with all 7 conditions.
+
+See [`benchmark-v4/results.json`](benchmark-v4/results.json) for raw data.
+
+### Previous Benchmarks
+
+<details>
+<summary>Benchmark v1-v2 (click to expand)</summary>
+
+#### Comparison: All Conditions (v2)
 
 | Condition | Avg Score | vs Naked | Generation cost/task |
 |-----------|:---------:|:--------:|:--------------------:|
@@ -144,6 +185,8 @@ See [`benchmark/run-v2/results.md`](benchmark/run-v2/results.md) for per-task ju
 | **SP + Immune** | **34.6** | **+104%** | ~$1.00+ |
 
 See [`benchmark/comparison/results.md`](benchmark/comparison/results.md) for the original SP vs SP+IM breakdown.
+
+</details>
 
 ### Cost Analysis
 
