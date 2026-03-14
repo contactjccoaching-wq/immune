@@ -3,6 +3,8 @@
 [![Stars](https://img.shields.io/github/stars/contactjccoaching-wq/immune?style=social)](https://github.com/contactjccoaching-wq/immune)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+![Immune System v4.1](immune-v41.png)
+
 A Claude Code skill that makes any LLM output better over time through two complementary memories:
 
 - **Cheatsheet** (positive patterns): Domain-specific winning strategies injected *before* generation
