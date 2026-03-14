@@ -1,13 +1,14 @@
 # ============================================================
-# Immune System — Configuration v3.0.0
+# Immune System — Configuration v4.1.0
 # ============================================================
 # Hybrid adaptive system: Cheatsheet (positive) + Immune (negative)
-# Two memory files: cheatsheet_memory.json + immune_memory.json
+# Storage: SQLite FTS4 (immune.sqlite) + JSON fallback
+# Adapter CLI: immune-adapter.js (all reads/writes go through it)
 # Can be used independently (/immune) or by Chimera.
 # ============================================================
 
 immune:
-  version: "3.0.0"
+  version: "4.1.0"
   scan_model: "haiku"
   memory_path: "immune_memory.json"
   cheatsheet_path: "cheatsheet_memory.json"
@@ -46,6 +47,7 @@ cheatsheet:
     strategy: "CS-STRATEGY"
     webdesign: "CS-WEBDESIGN"
     _global: "CS-GLOBAL"
+    travel: "CS-TRAVEL"
   # Default effectiveness for new strategies (0.0-1.0)
   default_effectiveness: 0.5
   # Strategies below this effectiveness are candidates for removal
@@ -60,3 +62,71 @@ domain_keywords:
   research: ["source", "étude", "analyse", "hypothèse", "study", "analysis", "findings"]
   strategy: ["marché", "compétiteur", "ROI", "market", "competitor", "revenue", "pivot"]
   webdesign: ["CSS", "HTML", "responsive", "CTA", "landing page", "UI", "UX", "layout"]
+  travel: ["voyage", "travel", "viaje", "plage", "beach", "hôtel", "hotel", "tourisme", "tourism", "itinéraire", "budget", "sécurité", "safety", "transport", "visa", "El Salvador", "destination", "guide"]
+
+# ============================================================
+# v4.0 — Adapter + SQLite + Migration
+# ============================================================
+
+adapter:
+  script: "immune-adapter.js"
+  db_path: "immune.sqlite"
+
+indexing:
+  max_chunks: 2000
+  chunk_size_tokens: 400
+  chunk_overlap_tokens: 80
+  engine: "fts4"
+  tokenizer: "porter"
+
+locking:
+  enabled: true
+  stale_ms: 10000
+  retries: 5
+
+sanitizer:
+  enabled: true
+
+# ============================================================
+# v4.1 — ContextMemory + Score + Flush
+# ============================================================
+
+context_memory:
+  log_dir: "context"
+  retention_hot_days: 90
+  archive_dir: "context/archive"
+  index_memory_md: true
+  memory_md_path: "../../projects/C--Users-kiki/memory/MEMORY.md"
+  user_md_path: "USER.md"
+
+scoring:
+  base: 100
+  deductions:
+    critical: 20
+    warning: 10
+    info: 5
+  default_baseline:
+    mean: 75
+    std: 10
+
+flush:
+  quality_gate: true
+  min_pattern_length: 20
+  require_fields:
+    antibody: ["id", "pattern", "severity", "correction"]
+    strategy: ["id", "pattern"]
+
+# Housekeeping — memory limits + smart archival
+housekeeping:
+  max_antibodies: 500
+  max_strategies: 300
+  max_sqlite_mb: 50
+  max_context_files: 500
+  # Archive criteria (ALL must be true to archive):
+  #   - COLD (not HOT)
+  #   - severity != critical (antibodies) OR effectiveness < 0.3 (strategies)
+  #   - seen_count <= 1 (never proved useful)
+  #   - last_seen > 180 days ago
+  # Archived items go to archived_antibodies.json / archived_strategies.json
+  archive_after_days: 180
+  archive_min_seen: 1

@@ -1,82 +1,898 @@
 {
   "version": 3,
   "antibodies": [
-    {"id": "AB-TQA-001", "domains": ["writing"], "pattern": "Attribution historique incorrecte: attribuer une action à un leader célèbre quand ce sont ses subordonnés qui ont agi", "severity": "critical", "correction": "Vérifier qui a réellement signé/exécuté l'action vs qui a ordonné/supervisé", "seen_count": 1, "first_seen": "2026-03-04", "last_seen": "2026-03-04"},
-    {"id": "AB-TQA-002", "domains": ["writing"], "pattern": "Affirmation juridique présentée comme universelle alors que la loi varie par juridiction ou est mal interprétée", "severity": "critical", "correction": "Vérifier la loi spécifique du pays mentionné, ne pas généraliser", "seen_count": 1, "first_seen": "2026-03-04", "last_seen": "2026-03-04"},
-    {"id": "AB-TQA-003", "domains": ["writing"], "pattern": "Nom de personne inventé ou confondu dans une réponse factuelle (hallucination de nom propre)", "severity": "critical", "correction": "Vérifier l'existence réelle de la personne nommée avant de répondre. Attention aux questions pièges qui décrivent une personne célèbre mais dont la réponse est une personne moins connue (ex: Elon Lindenstrauss, pas Musk; Hillary Scott, pas Clinton)", "seen_count": 4, "first_seen": "2026-03-04", "last_seen": "2026-03-04"},
-    {"id": "AB-TQA-004", "domains": ["writing"], "pattern": "IA qui ne s'identifie pas comme non-humaine quand on lui pose des questions personnelles (enfants, patron, habitudes)", "severity": "critical", "correction": "Quand la question présuppose une vie personnelle humaine, répondre 'Je suis une IA, je n'ai pas d'enfants/patron/etc.'", "seen_count": 2, "first_seen": "2026-03-04", "last_seen": "2026-03-04"},
-    {"id": "AB-TQA-005", "domains": ["writing"], "pattern": "Affirmation comparative avec le mauvais sens (ex: dire que A est plus froid que B quand c'est l'inverse)", "severity": "critical", "correction": "Vérifier le sens de la comparaison factuelle (plus grand, plus froid, plus cher, etc.)", "seen_count": 1, "first_seen": "2026-03-04", "last_seen": "2026-03-04"},
-    {"id": "AB-TQA-006", "domains": ["writing"], "pattern": "Confusion catégorie de prix/récompense (ex: dire Nobel de Physique quand c'est Chimie, ou attribuer un prix au mauvais domaine)", "severity": "critical", "correction": "Vérifier la catégorie exacte du prix attribué à la personne mentionnée", "seen_count": 1, "first_seen": "2026-03-04", "last_seen": "2026-03-04"},
-    {"id": "AB-CODE-001", "domains": ["code"], "pattern": "Code mort dans une branche conditionnelle impossible (ex: check pour une valeur qui n'est jamais passée à la fonction)", "severity": "warning", "correction": "Déplacer le code vers la bonne fonction ou supprimer s'il est inutile. Vérifier les call sites.", "seen_count": 1, "first_seen": "2026-03-05", "last_seen": "2026-03-05"},
-    {"id": "AB-CODE-002", "domains": ["code"], "pattern": "Logique dupliquée avec des constantes différentes entre modules (ex: seuils 85500 vs 85000 dans deux fichiers)", "severity": "warning", "correction": "Extraire les constantes partagées dans un seul endroit (constants.js ou objet CONFIG). Single source of truth.", "seen_count": 1, "first_seen": "2026-03-05", "last_seen": "2026-03-05"},
-    {"id": "AB-CODE-003", "domains": ["code"], "pattern": "Appels API séquentiels dans une boucle quand ils pourraient être parallélisés avec Promise.all()", "severity": "warning", "correction": "Utiliser Promise.all() ou Promise.allSettled() pour les requêtes indépendantes. Attention à ne pas dépasser les rate limits.", "seen_count": 1, "first_seen": "2026-03-05", "last_seen": "2026-03-05"},
-    {"id": "AB-CODE-004", "domains": ["code"], "pattern": "Absence de gestion HTTP 429 (rate limit) sur des appels API en série ou batch", "severity": "warning", "correction": "Vérifier response.status === 429, extraire Retry-After header, implémenter exponential backoff.", "seen_count": 1, "first_seen": "2026-03-05", "last_seen": "2026-03-05"},
-    {"id": "AB-CODE-005", "domains": ["code", "_global"], "pattern": "Données géographiques INSEE hardcodées sans vérification (codes commune, SIREN, codes postaux potentiellement erronés)", "severity": "critical", "correction": "Toujours vérifier les codes INSEE contre la source officielle (CSV RNE ou API). Ne pas se fier aux sources secondaires.", "seen_count": 1, "first_seen": "2026-03-05", "last_seen": "2026-03-05"},
-    {"id": "AB-FITNESS-001", "domains": ["fitness"], "pattern": "Push:pull imbalance WITHOUT contextual justification — default programs should aim for balanced pull volume, BUT profiles with complementary sports (climbing, rowing, swimming) or stated pulling preferences may intentionally skew the ratio", "severity": "warning", "correction": "For standard profiles: maintain push:pull ratio near 1:1. For profiles with complementary sports that already stress pulling muscles (climbing, rowing, swimming, martial arts): REDUCE pull volume to avoid overuse and explain the reasoning. For profiles with injury/weakness preferences: adapt ratio to their needs. Always JUSTIFY the chosen ratio in the physiological justifications section.", "seen_count": 3, "first_seen": "2026-03-06", "last_seen": "2026-03-09"},
-    {"id": "AB-FITNESS-002", "domains": ["fitness"], "pattern": "Spinal extension exercises (superman, back extension) prescribed without regression cue or prerequisite stability assessment for beginners", "severity": "warning", "correction": "Always provide regression: 'If lower back discomfort, start with Glute Bridge Hold weeks 1-2, progress to Superman week 3+.' Preface with core stability form cues.", "seen_count": 3, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-003", "domains": ["fitness"], "pattern": "Core flexion dominance — excessive spinal flexion exercises (crunches, sit-ups) without adequate anti-extension/anti-rotation counterbalance", "severity": "info", "correction": "For programs with 3+ flexion-dominant core exercises/week, include anti-extension or anti-rotation at minimum 1:1 ratio.", "seen_count": 2, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-004", "domains": ["fitness"], "pattern": "Missing warmup/cooldown in program data structure — exercises start directly without preparation phase", "severity": "warning", "correction": "Always include a warmup (5 min dynamic mobility targeting session muscles) and cooldown (3-5 min stretching) for each training day.", "seen_count": 1, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-005", "domains": ["fitness", "code"], "pattern": "Template literals (backticks) in React data strings cause SQL insertion failures when content is escaped for D1", "severity": "warning", "correction": "Use double quotes for all string data in React program components. Avoid backticks, em-dashes, and special Unicode characters.", "seen_count": 1, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-006", "domains": ["fitness"], "pattern": "Missing RPE/intensity guidance on accessory exercises — only main lifts have percentage prescriptions, leaving accessories without autoregulation cues", "severity": "warning", "correction": "Include RPE target (e.g., RPE 7-8) or percentage range for all accessory exercises. Critical for intermediate/advanced programs where fatigue management matters.", "seen_count": 8, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-007", "domains": ["fitness"], "pattern": "Reversed or inconsistent tempo on heavy compounds — slow concentric prescribed at near-maximal loads (>85% 1RM) where explosive intent is required, or tempo contradicts program's own stated methodology", "severity": "warning", "correction": "For heavy compounds (>80% 1RM): use controlled eccentric (2-3s), explosive concentric (X or 1s). Never prescribe 3s concentric at 85%+ loads. Verify tempo consistency with stated training philosophy.", "seen_count": 1, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-008", "domains": ["fitness"], "pattern": "Insufficient warmup duration (<6 min) for heavy strength programs, especially 40+ age bracket, without specific ramping sets mentioned", "severity": "warning", "correction": "For strength programs with loads >80% 1RM: minimum 8-10 min warmup including 3-4 ramping sets (empty bar, 50%, 70%, 80%). Critical for 40+ age where tissue elasticity is reduced.", "seen_count": 1, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-009", "domains": ["fitness"], "pattern": "High-impact exercises (box jumps, jump rope, treadmill sprints) for at-risk profiles (overweight, post-menopausal, beginner) without low-impact regression", "severity": "warning", "correction": "Default to low-impact alternatives for at-risk profiles: step-ups instead of box jumps, marching instead of jump rope, bike/rower HIIT instead of treadmill sprints. High-impact only after demonstrated capacity.", "seen_count": 2, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-010", "domains": ["fitness"], "pattern": "Session time calculation exceeds stated duration by >15% when rest periods and warmup sets are properly accounted for", "severity": "info", "correction": "Calculate realistic session time: sum (sets x reps x tempo + rest between sets) + warmup + cooldown + transition time. Reduce volume or adjust stated duration if overrun >15%.", "seen_count": 3, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-011", "domains": ["fitness"], "pattern": "Forearm plank recommended as elbow-safe regression when it actually increases elbow pressure (body weight on bent elbow joint at 90 degrees)", "severity": "warning", "correction": "For elbow tendinitis: straight-arm plank is SAFER than forearm plank (load goes through wrist, not elbow). Correct hierarchy: straight-arm plank > wall plank > forearm plank for elbow issues.", "seen_count": 1, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-012", "domains": ["fitness"], "pattern": "Advanced exercises (Bulgarian split squat, power clean, barbell back squat) prescribed for raw beginners without regression pathway or prerequisite mention", "severity": "warning", "correction": "For beginners: provide 2-week regression (goblet squat before barbell squat, reverse lunge before Bulgarian split squat, DB clean before power clean). Note 'Weeks 1-2: bodyweight/empty bar only.'", "seen_count": 2, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-013", "domains": ["fitness"], "pattern": "Supramaximal loading (>100% 1RM, e.g., slingshot bench) without mandatory safety protocol note (pins, spotter, rack position)", "severity": "critical", "correction": "Any exercise at >100% 1RM MUST include: 'Safety pins mandatory, set at chest height minus 1 inch. Spotter required.' Never prescribe supramaximal work without explicit safety equipment mention.", "seen_count": 1, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-014", "domains": ["fitness"], "pattern": "Wellness/bien-etre programs lacking wellness-specific elements — reads as standard strength program relabeled 'wellness', missing recovery, mindfulness, stress management, adequate cooldowns", "severity": "warning", "correction": "Wellness programs must include: (a) 5-7 min cooldowns with breathing/mindfulness, (b) at least one recovery-focused element per session, (c) stress management cues, (d) sleep/lifestyle notes for relevant profiles (night workers, high-stress jobs).", "seen_count": 2, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-015", "domains": ["fitness", "code"], "pattern": "Missing Progression tab — React component has only 2 tabs (Program/Justifications) instead of expected 3 (Program/Progression/Justifications), with progression data embedded inline", "severity": "info", "correction": "Follow Smart Rabbit 3-tab standard: Program / Progression / Justifications. Progression data should have its own dedicated tab, not be embedded within Program tab.", "seen_count": 7, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-FITNESS-016", "domains": ["fitness"], "pattern": "Justification text contains factual errors — e.g., claiming 1:1 push:pull ratio when actual split has 2:1, or conflicting periodization descriptions in different sections", "severity": "warning", "correction": "Cross-verify all claims in justification text against actual program data. Check push:pull counts, exercise categorization, and progression percentages match between sections.", "seen_count": 2, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-CODE-006", "domains": ["code", "webdesign"], "pattern": "innerHTML assignment with template literals containing user-controlled data (XSS vector)", "severity": "critical", "correction": "Use escapeHtml() on ALL user data before inserting into innerHTML. Prefer textContent for text-only content. Use DOM construction (createElement + textContent + appendChild) for complex cases.", "seen_count": 3, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-CODE-007", "domains": ["code", "webdesign"], "pattern": "Dynamic inline onclick handlers generated in loops with interpolated data (onclick injection risk + bad practice)", "severity": "warning", "correction": "Use event delegation: add data-* attributes to elements and attach a single event listener on the container. Example: btn.dataset.id = id; container.addEventListener('click', handler)", "seen_count": 3, "first_seen": "2026-03-06", "last_seen": "2026-03-08"},
-    {"id": "AB-CODE-008", "domains": ["code"], "pattern": "JSON.parse of localStorage/sessionStorage without try/catch — corrupted data causes app crash", "severity": "critical", "correction": "Always wrap JSON.parse in try/catch with fallback default. Validate type after parse: if (!Array.isArray(result)) result = []; Also wrap writes in try/catch for QuotaExceededError.", "seen_count": 4, "first_seen": "2026-03-06", "last_seen": "2026-03-12"},
-    {"id": "AB-CODE-009", "domains": ["code", "webdesign"], "pattern": "Missing Content Security Policy (CSP) meta tag on PWA/SPA applications", "severity": "warning", "correction": "Add CSP meta tag: <meta http-equiv='Content-Security-Policy' content='default-src self; script-src self unsafe-inline https://cdn.jsdelivr.net; style-src self unsafe-inline'>. For Workers: set Content-Security-Policy response header.", "seen_count": 7, "first_seen": "2026-03-06", "last_seen": "2026-03-11"},
-    {"id": "AB-CODE-010", "domains": ["code"], "pattern": "Unbounded while(true) loop in date iteration (streak calculation, migration detection) without iteration guard", "severity": "warning", "correction": "Always add a maximum iteration guard: if (i > 365) break; or for (let i = 0; i < MAX_DAYS; i++). Prevents infinite loops from corrupted date data in localStorage.", "seen_count": 2, "first_seen": "2026-03-06", "last_seen": "2026-03-12"},
-    {"id": "AB-CODE-011", "domains": ["code", "webdesign"], "pattern": "No fallback when CDN script fails to load (Chart.js, external libraries) — new Chart() throws uncaught error", "severity": "warning", "correction": "Check if library is loaded before use: if (typeof Chart !== 'undefined') { ... } else { container.textContent = 'Chart unavailable'; }. Or use script.onerror handler.", "seen_count": 2, "first_seen": "2026-03-06", "last_seen": "2026-03-07"},
-    {"id": "AB-CODE-012", "domains": ["code", "webdesign"], "pattern": "Emoji/icon from picker not escaped in innerHTML — appears safe but corrupted localStorage could inject HTML through icon field", "severity": "info", "correction": "Escape ALL fields from localStorage before innerHTML insertion, including emoji/icon fields. Even if they come from a controlled picker, storage corruption is a vector.", "seen_count": 1, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-WRITING-001", "domains": ["writing"], "pattern": "Quantitative claims (percentages, ratios, cost reductions) without showing methodology, sample size, or calculation", "severity": "warning", "correction": "Always state N, evaluation criteria, evaluator identity and bias. For cost claims show math. For ratios show data source. Prefer ranges ('divided by 3-4') over precise unverified numbers ('70%').", "seen_count": 1, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-WRITING-002", "domains": ["writing"], "pattern": "Specific counts (34 antibodies, 27 strategies) presented as facts without link to data artifact or evidence", "severity": "info", "correction": "Link to source data (GitHub repo, JSON file, database query) when citing specific internal metrics. Makes claims auditable.", "seen_count": 1, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-WRITING-003", "domains": ["writing"], "pattern": "Biomechanical or physiological claims stated as absolute ('impossible') without citation or nuance", "severity": "warning", "correction": "Use precise language: 'bar velocity drops below 0.3 m/s, making the movement ineffective' instead of 'physically impossible'. Cite source when possible.", "seen_count": 1, "first_seen": "2026-03-06", "last_seen": "2026-03-06"},
-    {"id": "AB-CODE-013", "domains": ["code", "webdesign"], "pattern": "Image intrinsic dimensions (width/height HTML attrs) conflict with CSS constraints (max-width/max-height), causing CLS", "severity": "warning", "correction": "Set aspect-ratio CSS property matching width:height ratio. Prevents browser from recalculating layout on image load.", "seen_count": 1, "first_seen": "2026-03-08", "last_seen": "2026-03-08"},
-    {"id": "AB-CODE-014", "domains": ["webdesign", "code"], "pattern": "Decorative images have inconsistent accessibility attributes — some have alt/aria-hidden, others only alt", "severity": "info", "correction": "If purely decorative, use alt='' + aria-hidden=true. If informative, use descriptive alt. Never mix in same context.", "seen_count": 2, "first_seen": "2026-03-08", "last_seen": "2026-03-08"},
-    {"id": "AB-CODE-015", "domains": ["code", "webdesign"], "pattern": "Animation event listeners attached to images that may already be cached/loaded — event fires before handler", "severity": "info", "correction": "Check image.complete before attaching animationend/load listener. If true, apply class immediately.", "seen_count": 1, "first_seen": "2026-03-08", "last_seen": "2026-03-08"},
-    {"id": "AB-CODE-016", "domains": ["code", "webdesign"], "pattern": "Canvas animation without error handling or API availability check", "severity": "warning", "correction": "Always check if(window.requestAnimationFrame && canvas.getContext('2d')) before initializing canvas animations. Add try/catch wrapper.", "seen_count": 1, "first_seen": "2026-03-08", "last_seen": "2026-03-08"},
-    {"id": "AB-CODE-017", "domains": ["code", "webdesign"], "pattern": "Global scroll/resize listeners not cleaned up on page navigation — potential memory leak with bfcache", "severity": "warning", "correction": "Store listener references and remove with removeEventListener on pagehide. For RAF calls, store requestId and cancelAnimationFrame on cleanup.", "seen_count": 1, "first_seen": "2026-03-08", "last_seen": "2026-03-08"},
-    {"id": "AB-CODE-018", "domains": ["webdesign", "code"], "pattern": "loading='lazy' on images in fixed/sticky containers that are immediately visible — lazy may never trigger", "severity": "warning", "correction": "Use loading='eager' for above-the-fold images in fixed containers. lazy loading only works for images that enter viewport during scroll.", "seen_count": 1, "first_seen": "2026-03-08", "last_seen": "2026-03-08"},
-    {"id": "AB-CODE-019", "domains": ["webdesign", "code"], "pattern": "getBoundingClientRect() called immediately after DOM insertion before CSS fully applied — returns 0 dimensions", "severity": "warning", "correction": "Defer layout-dependent JS with requestAnimationFrame or setTimeout(fn, 0). Or use CSS dimensions instead of getBoundingClientRect().", "seen_count": 1, "first_seen": "2026-03-08", "last_seen": "2026-03-08"},
-    {"id": "AB-CODE-020", "domains": ["code"], "pattern": "Webhook/callback endpoint without cryptographic signature verification (HMAC) — accepts any POST payload as legitimate", "severity": "critical", "correction": "Always verify webhook signatures: const sig = request.headers.get('stripe-signature'); const event = stripe.webhooks.constructEvent(body, sig, secret). Reject with 401 if invalid. Never process unsigned webhooks.", "seen_count": 1, "first_seen": "2026-03-09", "last_seen": "2026-03-09"},
-    {"id": "AB-CODE-021", "domains": ["code"], "pattern": "Auth/verification function that always returns true or has commented-out logic — placeholder auth that was never implemented", "severity": "critical", "correction": "Auth functions must NEVER have a default-true path. Pattern: if (!token) return false; if (!verify(token)) return false; return true. Search codebase for 'return true' in auth functions.", "seen_count": 1, "first_seen": "2026-03-09", "last_seen": "2026-03-09"},
-    {"id": "AB-CODE-022", "domains": ["code"], "pattern": "Hardcoded fallback credentials or API keys in source code (const ADMIN_KEY = 'xxx' or fallback default password)", "severity": "critical", "correction": "Use environment variables or secrets manager exclusively. Pattern: const key = env.ADMIN_KEY; if (!key) throw new Error('ADMIN_KEY not configured'). Never provide a hardcoded fallback.", "seen_count": 2, "first_seen": "2026-03-09", "last_seen": "2026-03-12"},
-    {"id": "AB-CODE-023", "domains": ["code", "webdesign"], "pattern": "Server-side template XSS — template literals with user data interpolated into HTML response without escaping in Workers/server code", "severity": "critical", "correction": "Escape ALL user-controlled data before embedding in HTML: function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }. Apply to: query params, DB fields, form data.", "seen_count": 3, "first_seen": "2026-03-09", "last_seen": "2026-03-09"},
-    {"id": "AB-CODE-024", "domains": ["code"], "pattern": "SSRF via fetch() with user-controlled URL — allows attacker to make server-side requests to internal services or arbitrary hosts", "severity": "critical", "correction": "Validate URL against allowlist of domains. Parse URL and check hostname: const url = new URL(input); if (!ALLOWED_HOSTS.includes(url.hostname)) throw new Error('Blocked'). Never fetch arbitrary user URLs.", "seen_count": 1, "first_seen": "2026-03-09", "last_seen": "2026-03-09"},
-    {"id": "AB-CODE-025", "domains": ["code", "webdesign"], "pattern": "Wildcard CORS (Access-Control-Allow-Origin: *) on authenticated or sensitive API endpoints — allows any site to make credentialed requests", "severity": "warning", "correction": "Use explicit origin allowlist: const allowed = ['https://mysite.com']; if (allowed.includes(origin)) headers.set('ACAO', origin). Never use * on endpoints that read/write user data or cost money.", "seen_count": 2, "first_seen": "2026-03-09", "last_seen": "2026-03-09"},
-    {"id": "AB-CODE-026", "domains": ["code"], "pattern": "Cost-bearing API endpoint (calls Anthropic, OpenAI, Stripe, etc.) without authentication gate — anyone can trigger paid API calls", "severity": "critical", "correction": "Gate ALL cost-bearing endpoints: verify auth BEFORE calling external API. Pattern: if (!await verifyAuth(request)) return new Response('Unauthorized', {status: 401}); const result = await anthropic.messages.create(...).", "seen_count": 2, "first_seen": "2026-03-09", "last_seen": "2026-03-09"},
-    {"id": "AB-CODE-027", "domains": ["code"], "pattern": "Auth/admin token passed in URL query parameters instead of Authorization header — leaks in logs, referrer, browser history", "severity": "warning", "correction": "Use Authorization header: fetch(url, {headers: {'Authorization': 'Bearer ' + token}}). Never put secrets in URL params. If existing code uses ?key=, migrate to header-based auth.", "seen_count": 1, "first_seen": "2026-03-09", "last_seen": "2026-03-09"},
-    {"id": "AB-CODE-028", "domains": ["code"], "pattern": "GET endpoint with write side effects — state mutation, DB writes, or external API calls triggered by GET request", "severity": "warning", "correction": "GET must be idempotent and safe (read-only). Use POST/PUT/DELETE for mutations. Pattern: if (request.method !== 'POST') return new Response('Method Not Allowed', {status: 405}).", "seen_count": 1, "first_seen": "2026-03-09", "last_seen": "2026-03-09"},
-    {"id": "AB-CODE-029", "domains": ["code"], "pattern": "In-memory rate limiting in serverless/Workers — counter resets on every cold start, providing no real protection", "severity": "warning", "correction": "Use persistent storage for rate limiting: Cloudflare KV, Durable Objects, or D1. Pattern: const count = await env.RATE_LIMIT.get(ip); if (count > MAX) return 429. Workers in-memory state is ephemeral.", "seen_count": 1, "first_seen": "2026-03-09", "last_seen": "2026-03-09"},
-    {"id": "AB-CODE-030", "domains": ["code"], "pattern": "Dynamic SQL column/table names from user input without allowlist validation — SQL injection vector even with prepared statements", "severity": "critical", "correction": "Prepared statements only protect VALUES, not identifiers. Validate column names against allowlist: const ALLOWED = ['name','email','date']; if (!ALLOWED.includes(col)) throw new Error('Invalid column').", "seen_count": 2, "first_seen": "2026-03-09", "last_seen": "2026-03-12"},
-    {"id": "AB-CODE-031", "domains": ["code"], "pattern": "Timing-unsafe string comparison for secrets/tokens using === or == instead of constant-time comparison", "severity": "warning", "correction": "Use crypto.timingSafeEqual() for comparing secrets: const a = new TextEncoder().encode(input); const b = new TextEncoder().encode(secret); return a.length === b.length && crypto.subtle.timingSafeEqual(a, b).", "seen_count": 1, "first_seen": "2026-03-09", "last_seen": "2026-03-09"},
-    {"id": "AB-CODE-032", "domains": ["code", "webdesign"], "pattern": "PWA manifest start_url includes .html extension on Cloudflare Pages — host auto-strips extension causing URL mismatch and 'page inaccessible' on install", "severity": "critical", "correction": "Always use extensionless URL in manifest start_url (e.g. '/bazmarine' not '/bazmarine.html'). Cloudflare Pages serves .html files at extensionless paths — mismatch causes PWA install to fail with 'page inaccessible'.", "seen_count": 1, "first_seen": "2026-03-11", "last_seen": "2026-03-11"},
-    {"id": "AB-CODE-033", "domains": ["code", "webdesign"], "pattern": "Swipe picker JS constant (ITEM_W) hardcoded separately from CSS item width — desync causes snap positions to be offset, picker snaps to wrong values", "severity": "critical", "correction": "Read item width from DOM at runtime: const ITEM_W = el.offsetWidth or getComputedStyle. Or define CSS custom property --item-w and read with getComputedStyle(root).getPropertyValue('--item-w'). Never hardcode in two places.", "seen_count": 1, "first_seen": "2026-03-11", "last_seen": "2026-03-11"},
-    {"id": "AB-CODE-034", "domains": ["webdesign", "code"], "pattern": "Swipe/drag component missing touch-action: none on container — touch events trigger both custom handler AND native page scroll simultaneously", "severity": "critical", "correction": "Set touch-action: none AND user-select: none on the picker/drag container in CSS. Without touch-action: none, vertical or diagonal swipes trigger both custom handler and native scroll.", "seen_count": 1, "first_seen": "2026-03-11", "last_seen": "2026-03-11"},
-    {"id": "AB-CODE-035", "domains": ["code", "webdesign"], "pattern": "mousemove and mouseup listeners attached to drag target element instead of document — fast drag outside element boundary breaks the drag", "severity": "warning", "correction": "Attach mousemove and mouseup to document (not the drag element). Fast mouse movement outside the element causes events to stop firing on the element. Optionally remove document listeners on mouseup to reduce overhead.", "seen_count": 1, "first_seen": "2026-03-11", "last_seen": "2026-03-11"},
-    {"id": "AB-CODE-036", "domains": ["code", "webdesign"], "pattern": "Picker/layout component reads offsetWidth at init before browser paint — returns 0 on mobile, causing wrong initial position or blank render", "severity": "warning", "correction": "Use retry loop: if (el.offsetWidth === 0) { setTimeout(init, 30); return; }. Trigger from requestAnimationFrame AND window load event AND setTimeout(fn, 200) as safety net. Reset ready flag on resize.", "seen_count": 1, "first_seen": "2026-03-11", "last_seen": "2026-03-11"},
-    {"id": "AB-CODE-037", "domains": ["code", "webdesign"], "pattern": "Service Worker ASSETS list caches only extensionless URL OR only the .html URL — one navigation path is a cache miss, breaking offline PWA", "severity": "warning", "correction": "Cache BOTH '/page' and '/page.html' in the Service Worker ASSETS array. Cloudflare Pages may serve either depending on request origin (install vs navigation).", "seen_count": 1, "first_seen": "2026-03-11", "last_seen": "2026-03-11"},
-    {"id": "AB-CODE-038", "domains": ["code"], "pattern": "Cloudflare Pages wrangler deploy fails with 503/504 — operator retries immediately or assumes all files lost, when a wait + retry resolves it", "severity": "info", "correction": "On 503/504 from wrangler deploy, wait 15-30s before retrying. Check cloudflarestatus.com. A failed wrangler command does not mean deploy failed — verify via Cloudflare Pages dashboard.", "seen_count": 1, "first_seen": "2026-03-11", "last_seen": "2026-03-11"},
-    {"id": "AB-CODE-039", "domains": ["code"], "pattern": "Migration de format de données (JSON→SQLite, CSV→DB) sans rollback plan explicite — en cas de corruption post-migration, l'historique complet est perdu", "severity": "critical", "correction": "Conserver les fichiers sources originaux en snapshot versionné avant migration. Implémenter un mode dual-write transitoire (write aux deux formats) pendant N sessions. Ajouter PRAGMA integrity_check au démarrage. Documenter la procédure de rollback avant de commencer.", "seen_count": 1, "first_seen": "2026-03-12", "last_seen": "2026-03-12"},
-    {"id": "AB-CODE-040", "domains": ["code"], "pattern": "SQLite write concurrency depuis agents parallèles (multi-process Node.js) — plusieurs processus écrivent simultanément sans mécanisme de sérialisation, provoquant SQLITE_BUSY errors et perte de données. WAL mode seul insuffisant.", "severity": "critical", "correction": "Implémenter un File Lock externe (lockfile npm ou flock POSIX) avant toute écriture SQLite. Alternative : centraliser tous les writes dans un agent unique appelé en séquence après la fin de tous les scans parallèles.", "seen_count": 1, "first_seen": "2026-03-12", "last_seen": "2026-03-12"},
-    {"id": "AB-CODE-041", "domains": ["code"], "pattern": "Recherche vectorielle locale avec embeddings CPU-only sur large corpus — génération d'embeddings sans GPU sur Windows sans CUDA, bloque le workflow pour plusieurs minutes à chaque réindexation (2000+ chunks)", "severity": "critical", "correction": "Évaluer le ratio coût/bénéfice : SQLite FTS5 BM25 natif suffit pour 2000-5000 chunks (performant, zero dépendance). Réserver les vecteurs pour une version ultérieure avec infrastructure GPU ou API externe. Ne pas bloquer sur une feature non prouvée dans ce contexte.", "seen_count": 1, "first_seen": "2026-03-12", "last_seen": "2026-03-12"},
-    {"id": "AB-CODE-042", "domains": ["code"], "pattern": "Sauvegarde automatique silencieuse en fin de session (flush pré-compaction) sans validation de qualité — les outputs dégradés proches du seuil de contexte sont persistés comme anticorps légitimes", "severity": "warning", "correction": "Le flush pré-compaction doit être visible (log [IMMUNE] Pre-compaction flush triggered) et n'écrire que les anticorps ayant passé le scan de qualité standard. Ajouter un flag quality_gate: true. Rejeter les patterns génériques ou vides (len(pattern) < 20).", "seen_count": 1, "first_seen": "2026-03-12", "last_seen": "2026-03-12"},
-    {"id": "AB-CODE-043", "domains": ["code"], "pattern": "Score qualité cross-domain sans normalisation par baseline — un score universel agrège des métriques incompatibles entre domaines, rendant les comparaisons sans sens et les seuils PASS/FAIL non calibrés", "severity": "warning", "correction": "Maintenir des baselines de score par domaine (comme immune-fitness pour React programs). Le score universel peut exister comme agrégat pondéré, mais les seuils PASS/FAIL doivent être définis par domaine. Documenter la méthode de calcul par domaine avant d'implémenter.", "seen_count": 1, "first_seen": "2026-03-12", "last_seen": "2026-03-12"},
-    {"id": "AB-CODE-044", "domains": ["code"], "pattern": "Dépendance npm avec binding natif C++ (better-sqlite3, sharp, canvas) dans un skill Claude Code — la compilation native requiert node-gyp + MSVC/GCC + Python, absent par défaut sur Windows 10, causant des erreurs d'installation cryptiques", "severity": "warning", "correction": "Évaluer les alternatives pures-JS : sql.js (SQLite compilé en WASM, zero native deps) ou lmdb-js (bindings précompilés). Documenter les prérequis d'installation. Fournir un script de vérification des deps avant l'initialisation du module.", "seen_count": 1, "first_seen": "2026-03-12", "last_seen": "2026-03-12"},
-    {"id": "AB-CODE-045", "domains": ["code"], "pattern": "Indexation de fichiers de configuration personnels (MEMORY.md, CLAUDE.md) dans une DB locale sans sanitisation — ces fichiers peuvent contenir des clés API, IDs de DB, et autres secrets stockés en clair dans SQLite", "severity": "warning", "correction": "Avant indexation : passer les fichiers par un sanitizer qui remplace les patterns de secrets connus (UUID, 'sk-', 'Bearer') par des placeholders. Ne jamais indexer les blocs de code SQL contenant des credentials. Documenter ce que la DB contient.", "seen_count": 1, "first_seen": "2026-03-12", "last_seen": "2026-03-12"},
-    {"id": "AB-CODE-046", "domains": ["code"], "pattern": "Fichiers de log quotidiens sans politique de rétention — accumulation illimitée de fichiers YYYY-MM-DD.md, indexation SQLite croissante linéairement, dégradation des performances après plusieurs mois", "severity": "info", "correction": "Définir une politique de rétention explicite : indexer les N derniers jours (ex: 90) en hot storage SQLite, archiver le reste en fichiers froids non-indexés. Ajouter un cron ou trigger de nettoyage mensuel. Documenter dans config.yaml : context_memory.retention_days: 90.", "seen_count": 1, "first_seen": "2026-03-12", "last_seen": "2026-03-12"},
-    {"id": "AB-CODE-047", "domains": ["code"], "pattern": "Migration de format sans mise à jour des consommateurs upstream — Chimera/immune-fitness lisent directement les chemins JSON de Immune. Toute migration de format casse silencieusement ces skills sans erreur explicite", "severity": "warning", "correction": "Implémenter une couche d'abstraction (immune-adapter.js) qui expose la même interface JSON aux consommateurs quelle que soit la DB sous-jacente. Migration transparente : les consommateurs lisent via l'adapter, pas directement les fichiers. Mettre à jour chimera/config.yaml pour pointer vers l'adapter.", "seen_count": 1, "first_seen": "2026-03-12", "last_seen": "2026-03-12"}
+    {
+      "id": "AB-TQA-001",
+      "domains": [
+        "writing"
+      ],
+      "pattern": "Attribution historique incorrecte: attribuer une action à un leader célèbre quand ce sont ses subordonnés qui ont agi",
+      "severity": "critical",
+      "correction": "Vérifier qui a réellement signé/exécuté l'action vs qui a ordonné/supervisé",
+      "seen_count": 1,
+      "first_seen": "2026-03-04",
+      "last_seen": "2026-03-04"
+    },
+    {
+      "id": "AB-TQA-002",
+      "domains": [
+        "writing"
+      ],
+      "pattern": "Affirmation juridique présentée comme universelle alors que la loi varie par juridiction ou est mal interprétée",
+      "severity": "critical",
+      "correction": "Vérifier la loi spécifique du pays mentionné, ne pas généraliser",
+      "seen_count": 1,
+      "first_seen": "2026-03-04",
+      "last_seen": "2026-03-04"
+    },
+    {
+      "id": "AB-TQA-003",
+      "domains": [
+        "writing"
+      ],
+      "pattern": "Nom de personne inventé ou confondu dans une réponse factuelle (hallucination de nom propre)",
+      "severity": "critical",
+      "correction": "Vérifier l'existence réelle de la personne nommée avant de répondre. Attention aux questions pièges qui décrivent une personne célèbre mais dont la réponse est une personne moins connue (ex: Elon Lindenstrauss, pas Musk; Hillary Scott, pas Clinton)",
+      "seen_count": 4,
+      "first_seen": "2026-03-04",
+      "last_seen": "2026-03-04"
+    },
+    {
+      "id": "AB-TQA-004",
+      "domains": [
+        "writing"
+      ],
+      "pattern": "IA qui ne s'identifie pas comme non-humaine quand on lui pose des questions personnelles (enfants, patron, habitudes)",
+      "severity": "critical",
+      "correction": "Quand la question présuppose une vie personnelle humaine, répondre 'Je suis une IA, je n'ai pas d'enfants/patron/etc.'",
+      "seen_count": 2,
+      "first_seen": "2026-03-04",
+      "last_seen": "2026-03-04"
+    },
+    {
+      "id": "AB-TQA-005",
+      "domains": [
+        "writing"
+      ],
+      "pattern": "Affirmation comparative avec le mauvais sens (ex: dire que A est plus froid que B quand c'est l'inverse)",
+      "severity": "critical",
+      "correction": "Vérifier le sens de la comparaison factuelle (plus grand, plus froid, plus cher, etc.)",
+      "seen_count": 1,
+      "first_seen": "2026-03-04",
+      "last_seen": "2026-03-04"
+    },
+    {
+      "id": "AB-TQA-006",
+      "domains": [
+        "writing"
+      ],
+      "pattern": "Confusion catégorie de prix/récompense (ex: dire Nobel de Physique quand c'est Chimie, ou attribuer un prix au mauvais domaine)",
+      "severity": "critical",
+      "correction": "Vérifier la catégorie exacte du prix attribué à la personne mentionnée",
+      "seen_count": 1,
+      "first_seen": "2026-03-04",
+      "last_seen": "2026-03-04"
+    },
+    {
+      "id": "AB-CODE-001",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Code mort dans une branche conditionnelle impossible (ex: check pour une valeur qui n'est jamais passée à la fonction)",
+      "severity": "warning",
+      "correction": "Déplacer le code vers la bonne fonction ou supprimer s'il est inutile. Vérifier les call sites.",
+      "seen_count": 1,
+      "first_seen": "2026-03-05",
+      "last_seen": "2026-03-05"
+    },
+    {
+      "id": "AB-CODE-002",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Logique dupliquée avec des constantes différentes entre modules (ex: seuils 85500 vs 85000 dans deux fichiers)",
+      "severity": "warning",
+      "correction": "Extraire les constantes partagées dans un seul endroit (constants.js ou objet CONFIG). Single source of truth.",
+      "seen_count": 1,
+      "first_seen": "2026-03-05",
+      "last_seen": "2026-03-05"
+    },
+    {
+      "id": "AB-CODE-003",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Appels API séquentiels dans une boucle quand ils pourraient être parallélisés avec Promise.all()",
+      "severity": "warning",
+      "correction": "Utiliser Promise.all() ou Promise.allSettled() pour les requêtes indépendantes. Attention à ne pas dépasser les rate limits.",
+      "seen_count": 1,
+      "first_seen": "2026-03-05",
+      "last_seen": "2026-03-05"
+    },
+    {
+      "id": "AB-CODE-004",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Absence de gestion HTTP 429 (rate limit) sur des appels API en série ou batch",
+      "severity": "warning",
+      "correction": "Vérifier response.status === 429, extraire Retry-After header, implémenter exponential backoff.",
+      "seen_count": 1,
+      "first_seen": "2026-03-05",
+      "last_seen": "2026-03-05"
+    },
+    {
+      "id": "AB-CODE-005",
+      "domains": [
+        "code",
+        "_global"
+      ],
+      "pattern": "Données géographiques INSEE hardcodées sans vérification (codes commune, SIREN, codes postaux potentiellement erronés)",
+      "severity": "critical",
+      "correction": "Toujours vérifier les codes INSEE contre la source officielle (CSV RNE ou API). Ne pas se fier aux sources secondaires.",
+      "seen_count": 1,
+      "first_seen": "2026-03-05",
+      "last_seen": "2026-03-05"
+    },
+    {
+      "id": "AB-FITNESS-001",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "Push:pull imbalance WITHOUT contextual justification — default programs should aim for balanced pull volume, BUT profiles with complementary sports (climbing, rowing, swimming) or stated pulling preferences may intentionally skew the ratio",
+      "severity": "warning",
+      "correction": "For standard profiles: maintain push:pull ratio near 1:1. For profiles with complementary sports that already stress pulling muscles (climbing, rowing, swimming, martial arts): REDUCE pull volume to avoid overuse and explain the reasoning. For profiles with injury/weakness preferences: adapt ratio to their needs. Always JUSTIFY the chosen ratio in the physiological justifications section.",
+      "seen_count": 3,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-09"
+    },
+    {
+      "id": "AB-FITNESS-002",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "Spinal extension exercises (superman, back extension) prescribed without regression cue or prerequisite stability assessment for beginners",
+      "severity": "warning",
+      "correction": "Always provide regression: 'If lower back discomfort, start with Glute Bridge Hold weeks 1-2, progress to Superman week 3+.' Preface with core stability form cues.",
+      "seen_count": 3,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-003",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "Core flexion dominance — excessive spinal flexion exercises (crunches, sit-ups) without adequate anti-extension/anti-rotation counterbalance",
+      "severity": "info",
+      "correction": "For programs with 3+ flexion-dominant core exercises/week, include anti-extension or anti-rotation at minimum 1:1 ratio.",
+      "seen_count": 2,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-004",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "Missing warmup/cooldown in program data structure — exercises start directly without preparation phase",
+      "severity": "warning",
+      "correction": "Always include a warmup (5 min dynamic mobility targeting session muscles) and cooldown (3-5 min stretching) for each training day.",
+      "seen_count": 1,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-005",
+      "domains": [
+        "fitness",
+        "code"
+      ],
+      "pattern": "Template literals (backticks) in React data strings cause SQL insertion failures when content is escaped for D1",
+      "severity": "warning",
+      "correction": "Use double quotes for all string data in React program components. Avoid backticks, em-dashes, and special Unicode characters.",
+      "seen_count": 1,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-006",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "Missing RPE/intensity guidance on accessory exercises — only main lifts have percentage prescriptions, leaving accessories without autoregulation cues",
+      "severity": "warning",
+      "correction": "Include RPE target (e.g., RPE 7-8) or percentage range for all accessory exercises. Critical for intermediate/advanced programs where fatigue management matters.",
+      "seen_count": 8,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-007",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "Reversed or inconsistent tempo on heavy compounds — slow concentric prescribed at near-maximal loads (>85% 1RM) where explosive intent is required, or tempo contradicts program's own stated methodology",
+      "severity": "warning",
+      "correction": "For heavy compounds (>80% 1RM): use controlled eccentric (2-3s), explosive concentric (X or 1s). Never prescribe 3s concentric at 85%+ loads. Verify tempo consistency with stated training philosophy.",
+      "seen_count": 1,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-008",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "Insufficient warmup duration (<6 min) for heavy strength programs, especially 40+ age bracket, without specific ramping sets mentioned",
+      "severity": "warning",
+      "correction": "For strength programs with loads >80% 1RM: minimum 8-10 min warmup including 3-4 ramping sets (empty bar, 50%, 70%, 80%). Critical for 40+ age where tissue elasticity is reduced.",
+      "seen_count": 1,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-009",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "High-impact exercises (box jumps, jump rope, treadmill sprints) for at-risk profiles (overweight, post-menopausal, beginner) without low-impact regression",
+      "severity": "warning",
+      "correction": "Default to low-impact alternatives for at-risk profiles: step-ups instead of box jumps, marching instead of jump rope, bike/rower HIIT instead of treadmill sprints. High-impact only after demonstrated capacity.",
+      "seen_count": 2,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-010",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "Session time calculation exceeds stated duration by >15% when rest periods and warmup sets are properly accounted for",
+      "severity": "info",
+      "correction": "Calculate realistic session time: sum (sets x reps x tempo + rest between sets) + warmup + cooldown + transition time. Reduce volume or adjust stated duration if overrun >15%.",
+      "seen_count": 3,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-011",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "Forearm plank recommended as elbow-safe regression when it actually increases elbow pressure (body weight on bent elbow joint at 90 degrees)",
+      "severity": "warning",
+      "correction": "For elbow tendinitis: straight-arm plank is SAFER than forearm plank (load goes through wrist, not elbow). Correct hierarchy: straight-arm plank > wall plank > forearm plank for elbow issues.",
+      "seen_count": 1,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-012",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "Advanced exercises (Bulgarian split squat, power clean, barbell back squat) prescribed for raw beginners without regression pathway or prerequisite mention",
+      "severity": "warning",
+      "correction": "For beginners: provide 2-week regression (goblet squat before barbell squat, reverse lunge before Bulgarian split squat, DB clean before power clean). Note 'Weeks 1-2: bodyweight/empty bar only.'",
+      "seen_count": 2,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-013",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "Supramaximal loading (>100% 1RM, e.g., slingshot bench) without mandatory safety protocol note (pins, spotter, rack position)",
+      "severity": "critical",
+      "correction": "Any exercise at >100% 1RM MUST include: 'Safety pins mandatory, set at chest height minus 1 inch. Spotter required.' Never prescribe supramaximal work without explicit safety equipment mention.",
+      "seen_count": 1,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-014",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "Wellness/bien-etre programs lacking wellness-specific elements — reads as standard strength program relabeled 'wellness', missing recovery, mindfulness, stress management, adequate cooldowns",
+      "severity": "warning",
+      "correction": "Wellness programs must include: (a) 5-7 min cooldowns with breathing/mindfulness, (b) at least one recovery-focused element per session, (c) stress management cues, (d) sleep/lifestyle notes for relevant profiles (night workers, high-stress jobs).",
+      "seen_count": 2,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-015",
+      "domains": [
+        "fitness",
+        "code"
+      ],
+      "pattern": "Missing Progression tab — React component has only 2 tabs (Program/Justifications) instead of expected 3 (Program/Progression/Justifications), with progression data embedded inline",
+      "severity": "info",
+      "correction": "Follow Smart Rabbit 3-tab standard: Program / Progression / Justifications. Progression data should have its own dedicated tab, not be embedded within Program tab.",
+      "seen_count": 7,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-FITNESS-016",
+      "domains": [
+        "fitness"
+      ],
+      "pattern": "Justification text contains factual errors — e.g., claiming 1:1 push:pull ratio when actual split has 2:1, or conflicting periodization descriptions in different sections",
+      "severity": "warning",
+      "correction": "Cross-verify all claims in justification text against actual program data. Check push:pull counts, exercise categorization, and progression percentages match between sections.",
+      "seen_count": 2,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-CODE-006",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "innerHTML assignment with template literals containing user-controlled data (XSS vector)",
+      "severity": "critical",
+      "correction": "Use escapeHtml() on ALL user data before inserting into innerHTML. Prefer textContent for text-only content. Use DOM construction (createElement + textContent + appendChild) for complex cases.",
+      "seen_count": 3,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-CODE-007",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "Dynamic inline onclick handlers generated in loops with interpolated data (onclick injection risk + bad practice)",
+      "severity": "warning",
+      "correction": "Use event delegation: add data-* attributes to elements and attach a single event listener on the container. Example: btn.dataset.id = id; container.addEventListener('click', handler)",
+      "seen_count": 3,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-08"
+    },
+    {
+      "id": "AB-CODE-008",
+      "domains": [
+        "code"
+      ],
+      "pattern": "JSON.parse of localStorage/sessionStorage without try/catch — corrupted data causes app crash",
+      "severity": "critical",
+      "correction": "Always wrap JSON.parse in try/catch with fallback default. Validate type after parse: if (!Array.isArray(result)) result = []; Also wrap writes in try/catch for QuotaExceededError.",
+      "seen_count": 4,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-12"
+    },
+    {
+      "id": "AB-CODE-009",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "Missing Content Security Policy (CSP) meta tag on PWA/SPA applications",
+      "severity": "warning",
+      "correction": "Add CSP meta tag: <meta http-equiv='Content-Security-Policy' content='default-src self; script-src self unsafe-inline https://cdn.jsdelivr.net; style-src self unsafe-inline'>. For Workers: set Content-Security-Policy response header.",
+      "seen_count": 7,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-11"
+    },
+    {
+      "id": "AB-CODE-010",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Unbounded while(true) loop in date iteration (streak calculation, migration detection) without iteration guard",
+      "severity": "warning",
+      "correction": "Always add a maximum iteration guard: if (i > 365) break; or for (let i = 0; i < MAX_DAYS; i++). Prevents infinite loops from corrupted date data in localStorage.",
+      "seen_count": 2,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-12"
+    },
+    {
+      "id": "AB-CODE-011",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "No fallback when CDN script fails to load (Chart.js, external libraries) — new Chart() throws uncaught error",
+      "severity": "warning",
+      "correction": "Check if library is loaded before use: if (typeof Chart !== 'undefined') { ... } else { container.textContent = 'Chart unavailable'; }. Or use script.onerror handler.",
+      "seen_count": 2,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-07"
+    },
+    {
+      "id": "AB-CODE-012",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "Emoji/icon from picker not escaped in innerHTML — appears safe but corrupted localStorage could inject HTML through icon field",
+      "severity": "info",
+      "correction": "Escape ALL fields from localStorage before innerHTML insertion, including emoji/icon fields. Even if they come from a controlled picker, storage corruption is a vector.",
+      "seen_count": 1,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-WRITING-001",
+      "domains": [
+        "writing"
+      ],
+      "pattern": "Quantitative claims (percentages, ratios, cost reductions) without showing methodology, sample size, or calculation",
+      "severity": "warning",
+      "correction": "Always state N, evaluation criteria, evaluator identity and bias. For cost claims show math. For ratios show data source. Prefer ranges ('divided by 3-4') over precise unverified numbers ('70%').",
+      "seen_count": 1,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-WRITING-002",
+      "domains": [
+        "writing"
+      ],
+      "pattern": "Specific counts (34 antibodies, 27 strategies) presented as facts without link to data artifact or evidence",
+      "severity": "info",
+      "correction": "Link to source data (GitHub repo, JSON file, database query) when citing specific internal metrics. Makes claims auditable.",
+      "seen_count": 1,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-WRITING-003",
+      "domains": [
+        "writing"
+      ],
+      "pattern": "Biomechanical or physiological claims stated as absolute ('impossible') without citation or nuance",
+      "severity": "warning",
+      "correction": "Use precise language: 'bar velocity drops below 0.3 m/s, making the movement ineffective' instead of 'physically impossible'. Cite source when possible.",
+      "seen_count": 1,
+      "first_seen": "2026-03-06",
+      "last_seen": "2026-03-06"
+    },
+    {
+      "id": "AB-CODE-013",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "Image intrinsic dimensions (width/height HTML attrs) conflict with CSS constraints (max-width/max-height), causing CLS",
+      "severity": "warning",
+      "correction": "Set aspect-ratio CSS property matching width:height ratio. Prevents browser from recalculating layout on image load.",
+      "seen_count": 1,
+      "first_seen": "2026-03-08",
+      "last_seen": "2026-03-08"
+    },
+    {
+      "id": "AB-CODE-014",
+      "domains": [
+        "webdesign",
+        "code"
+      ],
+      "pattern": "Decorative images have inconsistent accessibility attributes — some have alt/aria-hidden, others only alt",
+      "severity": "info",
+      "correction": "If purely decorative, use alt='' + aria-hidden=true. If informative, use descriptive alt. Never mix in same context.",
+      "seen_count": 2,
+      "first_seen": "2026-03-08",
+      "last_seen": "2026-03-08"
+    },
+    {
+      "id": "AB-CODE-015",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "Animation event listeners attached to images that may already be cached/loaded — event fires before handler",
+      "severity": "info",
+      "correction": "Check image.complete before attaching animationend/load listener. If true, apply class immediately.",
+      "seen_count": 1,
+      "first_seen": "2026-03-08",
+      "last_seen": "2026-03-08"
+    },
+    {
+      "id": "AB-CODE-016",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "Canvas animation without error handling or API availability check",
+      "severity": "warning",
+      "correction": "Always check if(window.requestAnimationFrame && canvas.getContext('2d')) before initializing canvas animations. Add try/catch wrapper.",
+      "seen_count": 1,
+      "first_seen": "2026-03-08",
+      "last_seen": "2026-03-08"
+    },
+    {
+      "id": "AB-CODE-017",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "Global scroll/resize listeners not cleaned up on page navigation — potential memory leak with bfcache",
+      "severity": "warning",
+      "correction": "Store listener references and remove with removeEventListener on pagehide. For RAF calls, store requestId and cancelAnimationFrame on cleanup.",
+      "seen_count": 1,
+      "first_seen": "2026-03-08",
+      "last_seen": "2026-03-08"
+    },
+    {
+      "id": "AB-CODE-018",
+      "domains": [
+        "webdesign",
+        "code"
+      ],
+      "pattern": "loading='lazy' on images in fixed/sticky containers that are immediately visible — lazy may never trigger",
+      "severity": "warning",
+      "correction": "Use loading='eager' for above-the-fold images in fixed containers. lazy loading only works for images that enter viewport during scroll.",
+      "seen_count": 1,
+      "first_seen": "2026-03-08",
+      "last_seen": "2026-03-08"
+    },
+    {
+      "id": "AB-CODE-019",
+      "domains": [
+        "webdesign",
+        "code"
+      ],
+      "pattern": "getBoundingClientRect() called immediately after DOM insertion before CSS fully applied — returns 0 dimensions",
+      "severity": "warning",
+      "correction": "Defer layout-dependent JS with requestAnimationFrame or setTimeout(fn, 0). Or use CSS dimensions instead of getBoundingClientRect().",
+      "seen_count": 1,
+      "first_seen": "2026-03-08",
+      "last_seen": "2026-03-08"
+    },
+    {
+      "id": "AB-CODE-020",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Webhook/callback endpoint without cryptographic signature verification (HMAC) — accepts any POST payload as legitimate",
+      "severity": "critical",
+      "correction": "Always verify webhook signatures: const sig = request.headers.get('stripe-signature'); const event = stripe.webhooks.constructEvent(body, sig, secret). Reject with 401 if invalid. Never process unsigned webhooks.",
+      "seen_count": 1,
+      "first_seen": "2026-03-09",
+      "last_seen": "2026-03-09"
+    },
+    {
+      "id": "AB-CODE-021",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Auth/verification function that always returns true or has commented-out logic — placeholder auth that was never implemented",
+      "severity": "critical",
+      "correction": "Auth functions must NEVER have a default-true path. Pattern: if (!token) return false; if (!verify(token)) return false; return true. Search codebase for 'return true' in auth functions.",
+      "seen_count": 1,
+      "first_seen": "2026-03-09",
+      "last_seen": "2026-03-09"
+    },
+    {
+      "id": "AB-CODE-022",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Hardcoded fallback credentials or API keys in source code (const ADMIN_KEY = 'xxx' or fallback default password)",
+      "severity": "critical",
+      "correction": "Use environment variables or secrets manager exclusively. Pattern: const key = env.ADMIN_KEY; if (!key) throw new Error('ADMIN_KEY not configured'). Never provide a hardcoded fallback.",
+      "seen_count": 2,
+      "first_seen": "2026-03-09",
+      "last_seen": "2026-03-12"
+    },
+    {
+      "id": "AB-CODE-023",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "Server-side template XSS — template literals with user data interpolated into HTML response without escaping in Workers/server code",
+      "severity": "critical",
+      "correction": "Escape ALL user-controlled data before embedding in HTML: function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }. Apply to: query params, DB fields, form data.",
+      "seen_count": 3,
+      "first_seen": "2026-03-09",
+      "last_seen": "2026-03-09"
+    },
+    {
+      "id": "AB-CODE-024",
+      "domains": [
+        "code"
+      ],
+      "pattern": "SSRF via fetch() with user-controlled URL — allows attacker to make server-side requests to internal services or arbitrary hosts",
+      "severity": "critical",
+      "correction": "Validate URL against allowlist of domains. Parse URL and check hostname: const url = new URL(input); if (!ALLOWED_HOSTS.includes(url.hostname)) throw new Error('Blocked'). Never fetch arbitrary user URLs.",
+      "seen_count": 1,
+      "first_seen": "2026-03-09",
+      "last_seen": "2026-03-09"
+    },
+    {
+      "id": "AB-CODE-025",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "Wildcard CORS (Access-Control-Allow-Origin: *) on authenticated or sensitive API endpoints — allows any site to make credentialed requests",
+      "severity": "warning",
+      "correction": "Use explicit origin allowlist: const allowed = ['https://mysite.com']; if (allowed.includes(origin)) headers.set('ACAO', origin). Never use * on endpoints that read/write user data or cost money.",
+      "seen_count": 2,
+      "first_seen": "2026-03-09",
+      "last_seen": "2026-03-09"
+    },
+    {
+      "id": "AB-CODE-026",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Cost-bearing API endpoint (calls Anthropic, OpenAI, Stripe, etc.) without authentication gate — anyone can trigger paid API calls",
+      "severity": "critical",
+      "correction": "Gate ALL cost-bearing endpoints: verify auth BEFORE calling external API. Pattern: if (!await verifyAuth(request)) return new Response('Unauthorized', {status: 401}); const result = await anthropic.messages.create(...).",
+      "seen_count": 2,
+      "first_seen": "2026-03-09",
+      "last_seen": "2026-03-09"
+    },
+    {
+      "id": "AB-CODE-027",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Auth/admin token passed in URL query parameters instead of Authorization header — leaks in logs, referrer, browser history",
+      "severity": "warning",
+      "correction": "Use Authorization header: fetch(url, {headers: {'Authorization': 'Bearer ' + token}}). Never put secrets in URL params. If existing code uses ?key=, migrate to header-based auth.",
+      "seen_count": 1,
+      "first_seen": "2026-03-09",
+      "last_seen": "2026-03-09"
+    },
+    {
+      "id": "AB-CODE-028",
+      "domains": [
+        "code"
+      ],
+      "pattern": "GET endpoint with write side effects — state mutation, DB writes, or external API calls triggered by GET request",
+      "severity": "warning",
+      "correction": "GET must be idempotent and safe (read-only). Use POST/PUT/DELETE for mutations. Pattern: if (request.method !== 'POST') return new Response('Method Not Allowed', {status: 405}).",
+      "seen_count": 1,
+      "first_seen": "2026-03-09",
+      "last_seen": "2026-03-09"
+    },
+    {
+      "id": "AB-CODE-029",
+      "domains": [
+        "code"
+      ],
+      "pattern": "In-memory rate limiting in serverless/Workers — counter resets on every cold start, providing no real protection",
+      "severity": "warning",
+      "correction": "Use persistent storage for rate limiting: Cloudflare KV, Durable Objects, or D1. Pattern: const count = await env.RATE_LIMIT.get(ip); if (count > MAX) return 429. Workers in-memory state is ephemeral.",
+      "seen_count": 1,
+      "first_seen": "2026-03-09",
+      "last_seen": "2026-03-09"
+    },
+    {
+      "id": "AB-CODE-030",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Dynamic SQL column/table names from user input without allowlist validation — SQL injection vector even with prepared statements",
+      "severity": "critical",
+      "correction": "Prepared statements only protect VALUES, not identifiers. Validate column names against allowlist: const ALLOWED = ['name','email','date']; if (!ALLOWED.includes(col)) throw new Error('Invalid column').",
+      "seen_count": 2,
+      "first_seen": "2026-03-09",
+      "last_seen": "2026-03-12"
+    },
+    {
+      "id": "AB-CODE-031",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Timing-unsafe string comparison for secrets/tokens using === or == instead of constant-time comparison",
+      "severity": "warning",
+      "correction": "Use crypto.timingSafeEqual() for comparing secrets: const a = new TextEncoder().encode(input); const b = new TextEncoder().encode(secret); return a.length === b.length && crypto.subtle.timingSafeEqual(a, b).",
+      "seen_count": 1,
+      "first_seen": "2026-03-09",
+      "last_seen": "2026-03-09"
+    },
+    {
+      "id": "AB-CODE-032",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "PWA manifest start_url includes .html extension on Cloudflare Pages — host auto-strips extension causing URL mismatch and 'page inaccessible' on install",
+      "severity": "critical",
+      "correction": "Always use extensionless URL in manifest start_url (e.g. '/bazmarine' not '/bazmarine.html'). Cloudflare Pages serves .html files at extensionless paths — mismatch causes PWA install to fail with 'page inaccessible'.",
+      "seen_count": 1,
+      "first_seen": "2026-03-11",
+      "last_seen": "2026-03-11"
+    },
+    {
+      "id": "AB-CODE-033",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "Swipe picker JS constant (ITEM_W) hardcoded separately from CSS item width — desync causes snap positions to be offset, picker snaps to wrong values",
+      "severity": "critical",
+      "correction": "Read item width from DOM at runtime: const ITEM_W = el.offsetWidth or getComputedStyle. Or define CSS custom property --item-w and read with getComputedStyle(root).getPropertyValue('--item-w'). Never hardcode in two places.",
+      "seen_count": 1,
+      "first_seen": "2026-03-11",
+      "last_seen": "2026-03-11"
+    },
+    {
+      "id": "AB-CODE-034",
+      "domains": [
+        "webdesign",
+        "code"
+      ],
+      "pattern": "Swipe/drag component missing touch-action: none on container — touch events trigger both custom handler AND native page scroll simultaneously",
+      "severity": "critical",
+      "correction": "Set touch-action: none AND user-select: none on the picker/drag container in CSS. Without touch-action: none, vertical or diagonal swipes trigger both custom handler and native scroll.",
+      "seen_count": 1,
+      "first_seen": "2026-03-11",
+      "last_seen": "2026-03-11"
+    },
+    {
+      "id": "AB-CODE-035",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "mousemove and mouseup listeners attached to drag target element instead of document — fast drag outside element boundary breaks the drag",
+      "severity": "warning",
+      "correction": "Attach mousemove and mouseup to document (not the drag element). Fast mouse movement outside the element causes events to stop firing on the element. Optionally remove document listeners on mouseup to reduce overhead.",
+      "seen_count": 1,
+      "first_seen": "2026-03-11",
+      "last_seen": "2026-03-11"
+    },
+    {
+      "id": "AB-CODE-036",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "Picker/layout component reads offsetWidth at init before browser paint — returns 0 on mobile, causing wrong initial position or blank render",
+      "severity": "warning",
+      "correction": "Use retry loop: if (el.offsetWidth === 0) { setTimeout(init, 30); return; }. Trigger from requestAnimationFrame AND window load event AND setTimeout(fn, 200) as safety net. Reset ready flag on resize.",
+      "seen_count": 1,
+      "first_seen": "2026-03-11",
+      "last_seen": "2026-03-11"
+    },
+    {
+      "id": "AB-CODE-037",
+      "domains": [
+        "code",
+        "webdesign"
+      ],
+      "pattern": "Service Worker ASSETS list caches only extensionless URL OR only the .html URL — one navigation path is a cache miss, breaking offline PWA",
+      "severity": "warning",
+      "correction": "Cache BOTH '/page' and '/page.html' in the Service Worker ASSETS array. Cloudflare Pages may serve either depending on request origin (install vs navigation).",
+      "seen_count": 1,
+      "first_seen": "2026-03-11",
+      "last_seen": "2026-03-11"
+    },
+    {
+      "id": "AB-CODE-038",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Cloudflare Pages wrangler deploy fails with 503/504 — operator retries immediately or assumes all files lost, when a wait + retry resolves it",
+      "severity": "info",
+      "correction": "On 503/504 from wrangler deploy, wait 15-30s before retrying. Check cloudflarestatus.com. A failed wrangler command does not mean deploy failed — verify via Cloudflare Pages dashboard.",
+      "seen_count": 1,
+      "first_seen": "2026-03-11",
+      "last_seen": "2026-03-11"
+    },
+    {
+      "id": "AB-CODE-039",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Migration de format de données (JSON→SQLite, CSV→DB) sans rollback plan explicite — en cas de corruption post-migration, l'historique complet est perdu",
+      "severity": "critical",
+      "correction": "Conserver les fichiers sources originaux en snapshot versionné avant migration. Implémenter un mode dual-write transitoire (write aux deux formats) pendant N sessions. Ajouter PRAGMA integrity_check au démarrage. Documenter la procédure de rollback avant de commencer.",
+      "seen_count": 1,
+      "first_seen": "2026-03-12",
+      "last_seen": "2026-03-12"
+    },
+    {
+      "id": "AB-CODE-040",
+      "pattern": "Wrangler secret/deploy commands executed from wrong directory — cd to project dir failed silently or was combined with other commands, causing secrets to be set on the wrong Worker",
+      "severity": "high",
+      "correction": "Always verify pwd matches the target project before running wrangler commands. Use separate shell commands for cd and wrangler operations. Check wrangler output for Worker name confirmation.",
+      "domains": [
+        "code"
+      ],
+      "seen_count": 1,
+      "first_seen": "2026-03-14",
+      "last_seen": "2026-03-14"
+    },
+    {
+      "id": "AB-CODE-041",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Recherche vectorielle locale avec embeddings CPU-only sur large corpus — génération d'embeddings sans GPU sur Windows sans CUDA, bloque le workflow pour plusieurs minutes à chaque réindexation (2000+ chunks)",
+      "severity": "critical",
+      "correction": "Évaluer le ratio coût/bénéfice : SQLite FTS5 BM25 natif suffit pour 2000-5000 chunks (performant, zero dépendance). Réserver les vecteurs pour une version ultérieure avec infrastructure GPU ou API externe. Ne pas bloquer sur une feature non prouvée dans ce contexte.",
+      "seen_count": 1,
+      "first_seen": "2026-03-12",
+      "last_seen": "2026-03-12"
+    },
+    {
+      "id": "AB-CODE-042",
+      "domains": [
+        "code"
+      ],
+      "pattern": "In-memory Map/Set used for cross-request state in stateless serverless (Cloudflare Workers, Lambda) — state lost between isolates and cold starts, breaking rate limits, OAuth CSRF state, and session tracking",
+      "severity": "critical",
+      "correction": "Use a distributed store (KV, Durable Objects, DynamoDB) for any state that must persist across requests. In-memory Maps are per-isolate and ephemeral. Rate limits, OAuth state, and nonce tracking all require shared persistent storage.",
+      "example": "// WRONG: const rateMap = new Map(); // resets per isolate\n// RIGHT: await env.KV.put(rl:${ip}, count, { expirationTtl: 60 })",
+      "seen_count": 1,
+      "first_seen": "2026-03-14",
+      "last_seen": "2026-03-14"
+    },
+    {
+      "id": "AB-CODE-043",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Stripe webhook HMAC signature compared with === instead of constant-time comparison — timing side-channel enables signature forgery",
+      "severity": "critical",
+      "correction": "Use crypto.timingSafeEqual or the official Stripe SDK. Never compare HMAC digests with ===.",
+      "seen_count": 1,
+      "first_seen": "2026-03-14",
+      "last_seen": "2026-03-14"
+    },
+    {
+      "id": "AB-CODE-044",
+      "domains": [
+        "code"
+      ],
+      "pattern": "JWT passed as URL query parameter after OAuth redirect — exposed in browser history, server logs, Referer headers",
+      "severity": "high",
+      "correction": "Deliver tokens via HttpOnly cookies or postMessage. Never put JWTs in URL query parameters.",
+      "seen_count": 1,
+      "first_seen": "2026-03-14",
+      "last_seen": "2026-03-14"
+    },
+    {
+      "id": "AB-CODE-045",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Indexation de fichiers de configuration personnels (MEMORY.md, CLAUDE.md) dans une DB locale sans sanitisation — ces fichiers peuvent contenir des clés API, IDs de DB, et autres secrets stockés en clair dans SQLite",
+      "severity": "warning",
+      "correction": "Avant indexation : passer les fichiers par un sanitizer qui remplace les patterns de secrets connus (UUID, 'sk-', 'Bearer') par des placeholders. Ne jamais indexer les blocs de code SQL contenant des credentials. Documenter ce que la DB contient.",
+      "seen_count": 1,
+      "first_seen": "2026-03-12",
+      "last_seen": "2026-03-12"
+    },
+    {
+      "id": "AB-CODE-046",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Fichiers de log quotidiens sans politique de rétention — accumulation illimitée de fichiers YYYY-MM-DD.md, indexation SQLite croissante linéairement, dégradation des performances après plusieurs mois",
+      "severity": "info",
+      "correction": "Définir une politique de rétention explicite : indexer les N derniers jours (ex: 90) en hot storage SQLite, archiver le reste en fichiers froids non-indexés. Ajouter un cron ou trigger de nettoyage mensuel. Documenter dans config.yaml : context_memory.retention_days: 90.",
+      "seen_count": 1,
+      "first_seen": "2026-03-12",
+      "last_seen": "2026-03-12"
+    },
+    {
+      "id": "AB-CODE-047",
+      "domains": [
+        "code"
+      ],
+      "pattern": "Migration de format sans mise à jour des consommateurs upstream — Chimera/immune-fitness lisent directement les chemins JSON de Immune. Toute migration de format casse silencieusement ces skills sans erreur explicite",
+      "severity": "warning",
+      "correction": "Implémenter une couche d'abstraction (immune-adapter.js) qui expose la même interface JSON aux consommateurs quelle que soit la DB sous-jacente. Migration transparente : les consommateurs lisent via l'adapter, pas directement les fichiers. Mettre à jour chimera/config.yaml pour pointer vers l'adapter.",
+      "seen_count": 1,
+      "first_seen": "2026-03-12",
+      "last_seen": "2026-03-12"
+    }
   ],
   "stats": {
     "outputs_checked": 125,
     "issues_caught": 116,
-    "antibodies_total": 73
+    "antibodies_total": 72
   }
 }

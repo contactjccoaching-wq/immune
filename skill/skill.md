@@ -1,16 +1,17 @@
 ---
 name: immune
-version: "3.0.0"
-description: "Hybrid adaptive system: Cheatsheet (positive patterns) + Immune (negative patterns). Cheatsheet injects winning strategies before generation. Immune scans output for errors and learns new threats. Both use Hot/Cold tiered memory with multi-domain support. Persistent memory shared with Chimera."
+version: "4.1.0"
+description: "Hybrid adaptive system v4.1: SQLite FTS4 + Adapter pattern + Cheatsheet (positive) + Immune (negative) + ContextMemory + Score + Flush. All reads/writes go through immune-adapter.js CLI. Dual-write JSON+SQLite for migration safety. Persistent memory shared with Chimera."
 ---
 
-# Immune System v3 — Hybrid Cheatsheet + Immune
+# Immune System v4 — Hybrid Cheatsheet + Immune
 
 You operate a hybrid adaptive system with two complementary memories:
 - **Cheatsheet** (positive patterns): domain-specific strategies injected BEFORE generation to improve output quality
 - **Immune** (negative patterns): antibodies that detect known errors and discover new threats AFTER generation
 
 Both memories use Hot/Cold tiering to keep context lean.
+All data access goes through the **adapter CLI** (`node ~/.claude/skills/immune/immune-adapter.js`).
 
 ## Input Parsing
 
@@ -47,29 +48,39 @@ If no inline text is provided, scan the last substantive output in the conversat
 
 ## Execution
 
+### Step -1 — Context Search (past session awareness)
+
+Search for relevant past sessions to inform the current scan:
+
+```bash
+node ~/.claude/skills/immune/immune-adapter.js get-context --query "{task keywords or domain}" --days 90 --limit 5
+```
+
+If results are found, note recurring patterns or past issues for the domain. This enriches the scan with historical awareness — the scanner will know if similar content was flagged before.
+
+Log: `[IMMUNE] Context: {count} relevant past sessions found`
+
 ### Step 0 — Cheatsheet Injection (positive patterns)
 
 Skip this step if `mode == "scan-only"`.
 
-**0a. Load cheatsheet:**
-Read `~/.claude/skills/immune/cheatsheet_memory.json`.
+**0a. Load HOT strategies via adapter:**
 
-**0b. Filter by domains:**
-Keep strategies where ANY of the strategy's `domains` overlaps with the detected `domains`, OR strategy has `"_global"` in its domains.
+Run:
+```bash
+node ~/.claude/skills/immune/immune-adapter.js get-strategies --domains '{domains_json}' --tier hot --limit 15
+```
+Parse the JSON output. The adapter returns strategies pre-filtered by domain, classified as HOT, sorted by effectiveness descending, and capped at 15.
 
-**0c. Classify into tiers (same logic as antibodies):**
-A strategy is HOT if ANY of:
-- `effectiveness >= 0.7`
-- `seen_count >= 3`
-- `last_seen` less than 30 days ago
+**0b. Load COLD strategies summary:**
 
-Everything else is COLD.
+Run:
+```bash
+node ~/.claude/skills/immune/immune-adapter.js get-strategies --domains '{domains_json}' --tier cold
+```
+Extract a short keyword from each COLD strategy's `pattern` field. Join as comma-separated list.
 
-**0d. Cap HOT strategies:**
-Sort by effectiveness descending, then seen_count descending.
-Keep max **15** (from `config.yaml` → `cheatsheet.max_hot`).
-
-**0e. Build cheatsheet block:**
+**0c. Build cheatsheet block:**
 Format HOT strategies as XML:
 ```xml
 <cheatsheet domain="{domains}">
@@ -93,38 +104,31 @@ Log:
 [IMMUNE] Cheatsheet: {n_hot} HOT + {n_cold} COLD strategies (domains: {domains})
 ```
 
-**0f. Present cheatsheet to user:**
+**0d. Present cheatsheet to user:**
 If running standalone (`/immune`), show the cheatsheet as context the user should apply to their next generation. If called by Chimera, return the XML block for injection into PRISM prompts.
 
 ### Step 1 — Load & Classify Antibodies (Hot/Cold)
 
-Read `~/.claude/skills/immune/immune_memory.json` and `~/.claude/skills/immune/config.yaml`.
+**1a. Load HOT antibodies via adapter:**
 
-**1a. Filter by domains:**
-Keep antibodies where ANY of the antibody's `domains` overlaps with detected `domains`, OR antibody has `"_global"` in its domains.
+Run:
+```bash
+node ~/.claude/skills/immune/immune-adapter.js get-antibodies --domains '{domains_json}' --tier hot --limit 15
+```
+The adapter returns antibodies pre-filtered by domain, classified as HOT (severity=critical OR seen_count>=3 OR last_seen<30d), sorted by severity then seen_count, capped at 15.
 
-**Backwards compatibility:** If an antibody has `"domain"` (string) instead of `"domains"` (array), treat it as `domains = [domain]`.
+**1b. Load COLD antibodies summary:**
 
-**1b. Classify into tiers:**
-For each filtered antibody, classify as HOT if **any** of these is true:
-- `severity == "critical"`
-- `seen_count >= 3`
-- `last_seen` is less than 30 days ago (relative to today's date)
-
-Everything else is COLD.
-
-**1c. Cap HOT antibodies:**
-Sort HOT by: severity (critical > warning > info), then seen_count descending.
-Keep max **15** (from `config.yaml` → `tiers.hot.max_per_scan`).
-If more than 15 qualify as HOT, overflow goes to COLD.
-
-**1d. Build COLD summary:**
+Run:
+```bash
+node ~/.claude/skills/immune/immune-adapter.js get-antibodies --domains '{domains_json}' --tier cold
+```
 For each COLD antibody, extract a short keyword from its `pattern` field.
-Join as comma-separated list. Example: `"SQL transactions, épicondylite, debug flags, tautologies"`
+Join as comma-separated list.
 
 Log:
 ```
-[IMMUNE] Tier split: {n_hot} HOT + {n_cold} COLD / {total} total (domains: {domains})
+[IMMUNE] Tier split: {n_hot} HOT + {n_cold} COLD / {n_hot + n_cold} total (domains: {domains})
 ```
 
 ### Step 2 — Scan
@@ -167,34 +171,33 @@ If new strategies detected:
 
 ### Step 3 — Update Immune Memory (with COLD deduplication)
 
-Read current `~/.claude/skills/immune/immune_memory.json`.
-
 **3a. Matched HOT antibodies:**
-For each antibody matched by the scanner, increment `seen_count` and update `last_seen` to today.
+For each antibody matched by the scanner, update via adapter:
+```bash
+node ~/.claude/skills/immune/immune-adapter.js update-antibody --id {antibody_id} --increment_seen true --last_seen {today}
+```
 
 **3b. New threats — deduplicate against COLD:**
 For each new threat in `new_threats_detected`:
-1. Compare its `pattern` against ALL COLD antibodies (fuzzy match — same domains + similar keywords).
-2. **If it matches a COLD antibody** → REACTIVATE:
-   - Increment the COLD antibody's `seen_count`
-   - Update its `last_seen` to today
+
+1. Search for similar existing antibodies via FTS4:
+```bash
+node ~/.claude/skills/immune/immune-adapter.js search --query "{pattern keywords}" --type antibodies --limit 3
+```
+2. **If FTS4 returns a match** (same domain + similar pattern) → REACTIVATE:
+   - Update the matched antibody: `update-antibody --id {matched_id} --increment_seen true --last_seen {today}`
    - Log: `[IMMUNE] Reactivated COLD antibody {id}: {pattern}`
    - Do NOT create a new antibody (prevents duplicates)
-3. **If no COLD match** AND `auto_add_threats` is true → CREATE new antibody:
-   - id: "AB-{next_number}"
-   - domains: from the threat's `recommended_antibody.domains` (array)
-   - pattern, severity, correction: from the threat's `recommended_antibody`
-   - seen_count: 1
-   - first_seen: today's date
-   - last_seen: today's date
+3. **If no match** AND `auto_add_threats` is true → CREATE new antibody:
+```bash
+node ~/.claude/skills/immune/immune-adapter.js add-antibody --json '{"id":"AB-{next_number}","domains":{domains},"pattern":"{pattern}","severity":"{severity}","correction":"{correction}","seen_count":1,"first_seen":"{today}","last_seen":"{today}"}'
+```
    - Log: `[IMMUNE] + New antibody {id}: {pattern}`
 
-**3c. Update stats:**
-- Increment `stats.outputs_checked`
-- Increment `stats.issues_caught` by number of corrections + new threats
-- Update `stats.antibodies_total` to current antibody count
-
-Write back to `~/.claude/skills/immune/immune_memory.json`.
+**3c. Get updated stats:**
+```bash
+node ~/.claude/skills/immune/immune-adapter.js stats
+```
 
 Log: `[IMMUNE] Memory: {total} antibodies ({n_hot} hot, {n_cold} cold) | +{new} added | Reactivated: {reactivated}`
 
@@ -202,46 +205,43 @@ Log: `[IMMUNE] Memory: {total} antibodies ({n_hot} hot, {n_cold} cold) | +{new} 
 
 Skip if `mode == "scan-only"` or no `new_strategies_detected` in scan result.
 
-Read current `~/.claude/skills/immune/cheatsheet_memory.json`.
-
 **3b-i. Deduplicate:**
 For each new strategy in `new_strategies_detected`:
-1. Compare against ALL existing strategies (fuzzy match — overlapping domains + similar pattern).
-2. **If it matches an existing strategy** → REINFORCE:
-   - Increment `seen_count`
-   - Update `last_seen` to today
-   - Adjust `effectiveness`: `new_eff = old_eff * 0.8 + reported_eff * 0.2` (exponential moving average)
+1. Search for similar existing strategies via FTS4:
+```bash
+node ~/.claude/skills/immune/immune-adapter.js search --query "{pattern keywords}" --type strategies --limit 3
+```
+2. **If FTS4 returns a match** (overlapping domains + similar pattern) → REINFORCE:
+   - Calculate new effectiveness: `new_eff = old_eff * 0.8 + reported_eff * 0.2` (exponential moving average)
+   - Update: `update-strategy --id {matched_id} --increment_seen true --last_seen {today} --effectiveness {new_eff}`
    - Log: `[IMMUNE] Reinforced strategy {id}: {pattern} (eff: {old}→{new})`
 3. **If no match** AND `auto_add_strategies` is true → CREATE new strategy:
-   - id: "{prefix}-{next_number}" (prefix from `config.yaml` → `cheatsheet.id_prefix.{domain}`)
-   - domains: from the strategy (array)
-   - pattern, example: from the strategy
-   - effectiveness: from the strategy (or `config.yaml` → `cheatsheet.default_effectiveness`)
-   - seen_count: 1
-   - first_seen: today's date
-   - last_seen: today's date
+```bash
+node ~/.claude/skills/immune/immune-adapter.js add-strategy --json '{"id":"{prefix}-{next_number}","domains":{domains},"pattern":"{pattern}","example":"{example}","effectiveness":{eff},"seen_count":1,"first_seen":"{today}","last_seen":"{today}"}'
+```
    - Log: `[IMMUNE] + New strategy {id}: {pattern}`
 
 **3b-ii. Prune low-effectiveness:**
-If any strategy has `effectiveness < config.cheatsheet.min_effectiveness` AND `seen_count >= 5`:
-- Remove it
-- Log: `[IMMUNE] - Pruned strategy {id}: {pattern} (eff: {eff})`
-
-**3b-iii. Update stats:**
-- Increment `stats.outputs_assisted`
-- Increment `stats.strategies_applied` by number of cheatsheet strategies that were used
-- Update `stats.strategies_total` to current count
-
-Write back to `~/.claude/skills/immune/cheatsheet_memory.json`.
+If any strategy has `effectiveness < 0.2` AND `seen_count >= 5`, note it for manual review.
 
 Log: `[IMMUNE] Cheatsheet: {total} strategies | +{new} added | Reinforced: {reinforced}`
 
-### Step 4 — Output
+### Step 4 — Score
+
+Calculate the universal score via adapter:
+```bash
+node ~/.claude/skills/immune/immune-adapter.js score --domains '{domains_json}' --severities '[{"severity":"critical","count":N},{"severity":"warning","count":N},{"severity":"info","count":N}]'
+```
+
+The adapter returns: `score` (0-100), `pass` (boolean), `z` (z-score vs domain baseline), `baseline` (mean, std, threshold, n), `deductions`.
+
+### Step 5 — Output
 
 **If clean:**
 ```
 ───
-IMMUNE v3 | domains={domains} | Status: CLEAN
+IMMUNE v4 | domains={domains} | Score: {score}/100 ({PASS|FAIL}) | z={z}
+   Baseline ({domain}): mean={mean} std={std} threshold={threshold}
    Cheatsheet: {n_strategies} strategies applied | Antibodies: {n_hot}/{max} HOT, {n_cold} COLD
    No issues detected
 ───
@@ -250,7 +250,8 @@ IMMUNE v3 | domains={domains} | Status: CLEAN
 **If corrections or threats found:**
 ```
 ───
-IMMUNE v3 | domains={domains} | Status: {CORRECTED|FLAGGED}
+IMMUNE v4 | domains={domains} | Score: {score}/100 ({PASS|FAIL}) | z={z}
+   Baseline ({domain}): mean={mean} std={std} threshold={threshold}
 
 Corrections Applied:
   [AB-XXX] {pattern} → {correction}
@@ -274,11 +275,37 @@ Memory: {total_ab} antibodies + {total_cs} strategies | +{new_ab} AB | +{new_cs}
 
 Then present the corrected output in a human-readable format appropriate to the domain.
 
+### Step 6 — Session Log
+
+Log the session result for future context:
+```bash
+node ~/.claude/skills/immune/immune-adapter.js log-session --date {today} --domains '{domains_json}' --result {clean|corrected|flagged} --summary "{brief summary of what was scanned and found}" --score {score}
+```
+
+This writes to `context/YYYY-MM-DD.md` + SQLite session_logs + FTS4 index for future `get-context` searches.
+
+### Step 7 — Flush Pre-Compaction (optional)
+
+If the conversation context is approaching compaction, save any pending antibodies/strategies that haven't been committed yet:
+```bash
+node ~/.claude/skills/immune/immune-adapter.js flush-pending --json '{"antibodies":[...],"strategies":[...]}'
+```
+
+Quality gate validation:
+- Pattern must be >= 20 characters
+- Antibodies require: id, pattern, severity, correction
+- Strategies require: id, pattern
+- FTS4 duplicate check prevents re-creating existing patterns
+- Flushed records are flagged with `quality_gate=1`
+
+Log: `[IMMUNE] Pre-compaction flush: +{n} antibodies, +{n} strategies (quality_gate=true)`
+
 ## Error Handling
 
-- If `immune_memory.json` does not exist: create it with `{"version": 3, "antibodies": [], "stats": {"outputs_checked": 0, "issues_caught": 0, "antibodies_total": 0}}`
-- If `cheatsheet_memory.json` does not exist: create it with `{"version": 3, "strategies": [], "stats": {"outputs_assisted": 0, "strategies_applied": 0, "strategies_total": 0}}`
-- If `immune_memory.json` has `"version": 2`: auto-migrate by converting each antibody's `"domain"` to `"domains": ["domain_value"]` and set version to 3. Write back immediately.
+- If adapter CLI fails: fall back to reading JSON files directly (`immune_memory.json`, `cheatsheet_memory.json`) — they are kept in sync via dual-write.
+- If `immune_memory.json` does not exist: adapter auto-creates it with empty antibodies.
+- If `cheatsheet_memory.json` does not exist: adapter auto-creates it with empty strategies.
+- If `immune_memory.json` has `"version": 2`: adapter auto-migrates `"domain"` to `"domains": ["domain_value"]`.
 - If the agent returns invalid JSON: retry once. If still invalid, report the raw output with a warning.
 - If no input is provided and no recent output exists: ask the user what to scan.
 - If all antibodies are COLD (none qualify as HOT): still send the scan with empty `hot_antibodies` array and full `cold_summary`. Haiku can still detect new threats via Phase 2.

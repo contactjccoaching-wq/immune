@@ -3,7 +3,9 @@
   "strategies": [
     {
       "id": "CS-CODE-001",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Échapper le HTML via l'API DOM (document.createElement + textContent) au lieu de regex/replace",
       "example": "escapeHtml(str) { if (!str) return ''; const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }",
       "effectiveness": 0.87,
@@ -13,7 +15,9 @@
     },
     {
       "id": "CS-CODE-002",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Chart.js instance lifecycle management — destroy before recreate OR use update pattern (preferred)",
       "example": "Preferred: if (chart) { chart.data = newData; chart.update(); } else { chart = new Chart(ctx, config); }. Alternative: if (chart) { chart.destroy(); chart = null; } chart = new Chart(ctx, config);",
       "effectiveness": 0.76,
@@ -23,7 +27,9 @@
     },
     {
       "id": "CS-CODE-003",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Cache sessionStorage pour les réponses API avec clé préfixée (éviter collisions)",
       "example": "sessionStorage.setItem('ec_' + key, JSON.stringify(data)) avec try/catch pour quota dépassé",
       "effectiveness": 0.7,
@@ -33,7 +39,9 @@
     },
     {
       "id": "CS-FITNESS-001",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "User preference integration with compound prioritization — honor stated exercise preferences while ensuring compounds lead each session",
       "example": "Profile likes squats, no burpees → squats placed as primary Day 1+2 (sumo variant), burpees excluded entirely, mountain climbers as metabolic alternative.",
       "effectiveness": 0.85,
@@ -43,17 +51,21 @@
     },
     {
       "id": "CS-FITNESS-002",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Exercise sequencing by dominance emphasis rotation within full-body format",
       "example": "Day 1: Lower-focus (Squats→Lunges→Bridges→Push-ups). Day 2: Upper-focus (Push-ups→Sumo Squats→Superman→Dips). Day 3: Balanced. Prevents monotony while maintaining full-body stimulus.",
-      "effectiveness": 0.80,
+      "effectiveness": 0.8,
       "seen_count": 3,
       "first_seen": "2026-03-06",
       "last_seen": "2026-03-06"
     },
     {
       "id": "CS-FITNESS-003",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Include deload week in progression cycle (typically week 6-7, 40% volume reduction)",
       "example": "Week 7 deload: reduce volume by 40%, maintain tempos, focus on mobility/recovery. Supports CNS recovery, reduces overtraining risk.",
       "effectiveness": 0.88,
@@ -63,7 +75,9 @@
     },
     {
       "id": "CS-FITNESS-004",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Tempo differentiation by exercise class — compound vs isometric vs isolation",
       "example": "Compound lifts: 5-6s tempos (3s ecc, 1s pause, 2s con). Isometric holds: static. Dynamic/isolation: 3s tempos. Explosive concentric (X) for heavy strength >80% 1RM.",
       "effectiveness": 0.78,
@@ -73,7 +87,9 @@
     },
     {
       "id": "CS-FITNESS-005",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Rep range periodization within single session — higher reps for compounds, lower for accessories (or inverted for strength goals)",
       "example": "Beginner weight loss: 15 reps (squats) → 12 reps (lunges) → 10 reps (push-ups). Strength: 3-5 reps (primaries) → 8-12 reps (accessories).",
       "effectiveness": 0.75,
@@ -83,7 +99,9 @@
     },
     {
       "id": "CS-FITNESS-006",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Dedicated safety protocol box for profiles with injuries/limitations — visually distinct section explaining all exercise modifications",
       "example": "Red-bordered box listing: barbell OHP removed (replaced by landmine press), incline pressing avoided, face pulls every pull day, stop-if-sharp-pain rule.",
       "effectiveness": 0.84,
@@ -93,7 +111,10 @@
     },
     {
       "id": "CS-FITNESS-007",
-      "domains": ["fitness", "code"],
+      "domains": [
+        "fitness",
+        "code"
+      ],
       "pattern": "Sub-component decomposition for React fitness programs — separate ExerciseCard, DayPanel, ProgressionTable components",
       "example": "function ExerciseCard({ ex }) with priority border color, name, sets x reps, tempo, rest, technique badge, and note.",
       "effectiveness": 0.78,
@@ -103,7 +124,9 @@
     },
     {
       "id": "CS-FITNESS-008",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Lift-specific wave loading back-off patterns — vary the wave structure per lift based on CNS recovery cost",
       "example": "Bench: ascending-descending 72/77/82/82/77%. Squat: plateau 70/75/80/80/80%. Deadlift: peak-backoff 75/80/85/85/80%.",
       "effectiveness": 0.82,
@@ -113,7 +136,9 @@
     },
     {
       "id": "CS-FITNESS-009",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Anti-movement core training dominance for strength — prioritize anti-rotation, anti-extension, anti-lateral flexion over spinal flexion",
       "example": "Pallof Press, Ab Wheel Rollout, Copenhagen Plank, Suitcase Carry. Ratio 5:1 anti-movement:flexion for spine stability under load.",
       "effectiveness": 0.86,
@@ -123,7 +148,9 @@
     },
     {
       "id": "CS-FITNESS-010",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Occupation/lifestyle-aware exercise rationale in technique fields — tie exercise choices to user's job, daily activities, and specific physical demands",
       "example": "Night bartender: 'Counteract hip flexor tightness from standing shifts', 'Spinal stability for long shift protection', 'Shoulder strength for bartending'. PE teacher: 'Setting example for students'.",
       "effectiveness": 0.83,
@@ -133,7 +160,9 @@
     },
     {
       "id": "CS-FITNESS-011",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Mind-muscle connection (MMC) cue embedded in every exercise note for beginner/technique-focus profiles",
       "example": "Each exercise note includes: 'feel quads+glutes consciously', 'squeeze pecs at top', 'feel hamstrings stretch'. Unified tempo with documented 'EMG increase' justification.",
       "effectiveness": 0.85,
@@ -143,27 +172,33 @@
     },
     {
       "id": "CS-FITNESS-012",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Core anti-movement plane rotation across days — each session targets a different stability plane",
       "example": "Day A: anti-extension (Plank). Day B: anti-rotation (Bird Dog). Day C: anti-lateral flexion (Side Plank). Full coverage across 3 sessions.",
-      "effectiveness": 0.80,
+      "effectiveness": 0.8,
       "seen_count": 1,
       "first_seen": "2026-03-06",
       "last_seen": "2026-03-06"
     },
     {
       "id": "CS-FITNESS-013",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Post-strength LISS cardio for fat-oxidation window in weight loss programs — 20 min low-intensity after resistance training",
       "example": "After strength work: 20 min bike or elliptical at 65-70% HR max. Exploits post-resistance fat-oxidation window. Different machines each session for variety.",
-      "effectiveness": 0.80,
+      "effectiveness": 0.8,
       "seen_count": 1,
       "first_seen": "2026-03-06",
       "last_seen": "2026-03-06"
     },
     {
       "id": "CS-FITNESS-014",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Session-specific warmup and cooldown matching primary muscles — not generic warmup for all days",
       "example": "Squat day: hip circles + leg swings. Pull day: band pull-aparts + thoracic rotations. Push day: shoulder circles + push-up hold. Cooldown stretches match session muscles.",
       "effectiveness": 0.82,
@@ -173,7 +208,9 @@
     },
     {
       "id": "CS-FITNESS-015",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Antagonist superset pairing for time efficiency on isolation accessories",
       "example": "Bicep curl + skull crusher superset saves ~5 min per session. Cable fly + face pull superset. No rest penalty since antagonist muscles recover during agonist work.",
       "effectiveness": 0.78,
@@ -183,7 +220,9 @@
     },
     {
       "id": "CS-FITNESS-016",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "CrossFit benchmark WODs as built-in progress tracking — use named WODs (Fran, Cindy) for automatic comparability across training weeks",
       "example": "W1-2: establish baseline Fran time. W3-4: beat W1-2 scores. W5: deload. W6: retest benchmarks. Athletes already know these WODs and care about scores.",
       "effectiveness": 0.78,
@@ -193,7 +232,9 @@
     },
     {
       "id": "CS-FITNESS-017",
-      "domains": ["fitness"],
+      "domains": [
+        "fitness"
+      ],
       "pattern": "Menopause/age-specific exercise justification linking each exercise to its physiological benefit mechanism",
       "example": "Each exercise note explains: 'Axial loading through femur stimulates osteoblasts' (squat), 'Ground reaction force 3-5x bodyweight' (step-ups), 'Fall prevention via proprioception' (single-leg balance).",
       "effectiveness": 0.82,
@@ -203,7 +244,10 @@
     },
     {
       "id": "CS-CODE-004",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "Event delegation with data-action attributes instead of inline onclick in dynamically generated HTML",
       "example": "container.addEventListener('click', e => { const btn = e.target.closest('[data-action]'); if (btn) handleAction(btn.dataset.action, btn.dataset.id); });",
       "effectiveness": 0.7,
@@ -213,7 +257,9 @@
     },
     {
       "id": "CS-CODE-005",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Schema validation on localStorage reads with per-entry field validation and type guards",
       "example": "let habits = []; try { const raw = JSON.parse(localStorage.getItem('hf_habits') || '[]'); if (Array.isArray(raw)) habits = raw.filter(h => typeof h.id === 'string' && typeof h.name === 'string'); } catch { habits = []; }",
       "effectiveness": 0.72,
@@ -223,7 +269,9 @@
     },
     {
       "id": "CS-CODE-006",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Centralized init() function orchestrating all app setup (loadData, applyTheme, render, registerSW, initEventListeners) called from DOMContentLoaded",
       "example": "document.addEventListener('DOMContentLoaded', () => { loadData(); applyDarkMode(); renderToday(); injectManifest(); registerSW(); initEventListeners(); });",
       "effectiveness": 0.5,
@@ -233,7 +281,9 @@
     },
     {
       "id": "CS-CODE-007",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Single centralized state object instead of scattered global variables for app state management",
       "example": "const state = { habits: [], logs: {}, notes: {}, settings: { dark: false } }; function saveData() { localStorage.setItem('app_state', JSON.stringify(state)); }",
       "effectiveness": 0.5,
@@ -243,7 +293,10 @@
     },
     {
       "id": "CS-CODE-008",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "Centralized initEventListeners() function grouping ALL event bindings in one auditable place",
       "example": "function initEventListeners() { /* all tab clicks, form submits, toggles, delegated handlers in one place */ }",
       "effectiveness": 0.5,
@@ -253,7 +306,10 @@
     },
     {
       "id": "CS-CODE-009",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "Auto-save text inputs with debounce instead of manual save button — reduces friction",
       "example": "let saveTimer; textarea.addEventListener('input', () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => saveNote(dateKey, textarea.value), 600); });",
       "effectiveness": 0.5,
@@ -263,7 +319,10 @@
     },
     {
       "id": "CS-CODE-010",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "ARIA roles and keyboard navigation for PWA accessibility (role=grid, role=listitem, tabindex, Enter/Space handlers)",
       "example": "card.setAttribute('role', 'listitem'); card.setAttribute('tabindex', '0'); card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') toggle(id); });",
       "effectiveness": 0.5,
@@ -273,7 +332,10 @@
     },
     {
       "id": "CS-WRITING-001",
-      "domains": ["writing", "fitness"],
+      "domains": [
+        "writing",
+        "fitness"
+      ],
       "pattern": "Framing AI limitations as feature not bug — honest constraints section increases credibility more than perfect claims",
       "example": "Section 'L'honnêteté sur les limites' listing: AI doesn't replace coach, 34 patterns don't cover everything, quality depends on input, no longitudinal tracking yet.",
       "effectiveness": 0.92,
@@ -283,7 +345,9 @@
     },
     {
       "id": "CS-WRITING-002",
-      "domains": ["writing"],
+      "domains": [
+        "writing"
+      ],
       "pattern": "Open-source transparency as credibility marketing — sharing frameworks on GitHub proves seriousness better than claims",
       "example": "'Je développe mes outils en open source. Les frameworks sont sur GitHub. Le système immunitaire est documenté.'",
       "effectiveness": 0.88,
@@ -293,7 +357,10 @@
     },
     {
       "id": "CS-WRITING-003",
-      "domains": ["writing", "fitness"],
+      "domains": [
+        "writing",
+        "fitness"
+      ],
       "pattern": "Concrete error rates validate claims better than generic 'improved quality' — use real production numbers",
       "example": "'Sur les programmes analysés, des problèmes ont été détectés dans près d'un cas sur deux' vs 'la qualité a été améliorée'",
       "effectiveness": 0.85,
@@ -303,7 +370,10 @@
     },
     {
       "id": "CS-WRITING-004",
-      "domains": ["writing", "webdesign"],
+      "domains": [
+        "writing",
+        "webdesign"
+      ],
       "pattern": "Direct-answer div with immediate credential establishes authority — question/answer format with expertise signal in first 4 lines",
       "example": "<div class='direct-answer'><p>Question: L'IA peut-elle...</p><p>Réponse: Oui, mais... [credential: coach diplômé d'État]</p></div>",
       "effectiveness": 0.83,
@@ -313,7 +383,10 @@
     },
     {
       "id": "CS-CODE-011",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "Mobile-first CSS Grid layout with responsive breakpoints — repeat(N, 1fr) at desktop, 1fr at mobile via @media",
       "example": ".kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; } @media (max-width: 768px) { .kpi-row { grid-template-columns: 1fr; } }",
       "effectiveness": 0.5,
@@ -323,7 +396,10 @@
     },
     {
       "id": "CS-WEBDESIGN-001",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "Explicit Chart.js color theming for dark backgrounds — set Chart.defaults.color, gridColor, tickColor globally instead of per-chart",
       "example": "Chart.defaults.color = '#8892b0'; const gridColor = 'rgba(255,255,255,0.06)'; // reuse in all chart options.scales",
       "effectiveness": 0.5,
@@ -333,7 +409,10 @@
     },
     {
       "id": "CS-WEBDESIGN-002",
-      "domains": ["webdesign", "code"],
+      "domains": [
+        "webdesign",
+        "code"
+      ],
       "pattern": "Prioritized hero image loading with fetchpriority=high + deferred lazy loading for secondary images",
       "example": "Hero: fetchpriority='high' + preload. Secondary: loading='lazy' + decoding='async' + R2 CDN",
       "effectiveness": 0.89,
@@ -343,7 +422,10 @@
     },
     {
       "id": "CS-WEBDESIGN-003",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "RequestAnimationFrame throttling with ticking flag to batch scroll events for parallax",
       "example": "if (!ticking) { requestAnimationFrame(updateParallax); ticking = true; } — passive: true on scroll listener",
       "effectiveness": 0.856,
@@ -353,7 +435,10 @@
     },
     {
       "id": "CS-WEBDESIGN-004",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "IntersectionObserver + unobserve for one-shot scroll-triggered animations",
       "example": "observer.observe(el) → on isIntersecting: add 'visible' class + unobserve (fires once, memory friendly)",
       "effectiveness": 0.88,
@@ -363,17 +448,23 @@
     },
     {
       "id": "CS-WEBDESIGN-005",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "Passive event listeners on high-frequency scroll handlers for browser optimization",
       "example": "window.addEventListener('scroll', handler, { passive: true }) — lets browser optimize scrolling",
       "effectiveness": 0.9,
       "seen_count": 1,
       "first_seen": "2026-03-08",
       "last_seen": "2026-03-08"
-    }
-  ,{
+    },
+    {
       "id": "CS-WEBDESIGN-006",
-      "domains": ["webdesign", "code"],
+      "domains": [
+        "webdesign",
+        "code"
+      ],
       "pattern": "Scroll-indexed shape morphing via modulo cycling — border-radius changes triggered by Math.floor(scrollY / interval) % shapes.length",
       "example": "var idx = Math.floor(scrollY / 120) % shapes.length; btn.style.borderRadius = shapes[idx].br; — 10 organic blob shapes with unique box-shadows",
       "effectiveness": 0.75,
@@ -383,17 +474,22 @@
     },
     {
       "id": "CS-WEBDESIGN-007",
-      "domains": ["webdesign", "code"],
+      "domains": [
+        "webdesign",
+        "code"
+      ],
       "pattern": "CSS class toggle (active/waiting) instead of display:none for scroll-driven visibility — preserves CSS transitions on reentry",
       "example": ".stack-item.active .carousel-img { opacity:1; transform:translateX(0); } .stack-item.waiting .carousel-img { opacity:0; transform:translateX(-120%); }",
-      "effectiveness": 0.80,
+      "effectiveness": 0.8,
       "seen_count": 1,
       "first_seen": "2026-03-08",
       "last_seen": "2026-03-08"
     },
     {
       "id": "CS-CODE-012",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Credential-present implies validation-required — if a secret/key exists in env, the endpoint MUST verify it before proceeding",
       "example": "const key = request.headers.get('Authorization')?.replace('Bearer ', ''); if (key !== env.API_KEY) return new Response('Unauthorized', {status: 401}); // THEN process request",
       "effectiveness": 0.92,
@@ -403,17 +499,22 @@
     },
     {
       "id": "CS-CODE-013",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Fail-closed pattern for secrets — if secret is missing from env, reject request rather than falling through to default/open access",
       "example": "const secret = env.WEBHOOK_SECRET; if (!secret) { console.error('WEBHOOK_SECRET not configured'); return new Response('Server misconfigured', {status: 500}); }",
-      "effectiveness": 0.90,
+      "effectiveness": 0.9,
       "seen_count": 1,
       "first_seen": "2026-03-09",
       "last_seen": "2026-03-09"
     },
     {
       "id": "CS-CODE-014",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "All DB text fields require escapeHtml() before HTML template interpolation — never trust stored data in server-side rendering",
       "example": "const title = escapeHtml(row.title); const html = `<h1>${title}</h1>`; // Even DB data could contain injected HTML from previous unvalidated input",
       "effectiveness": 0.88,
@@ -423,7 +524,9 @@
     },
     {
       "id": "CS-CODE-015",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Query params and path segments treated as hostile input — validate type, length, and format before use",
       "example": "const id = parseInt(url.searchParams.get('id')); if (isNaN(id) || id < 1 || id > 100000) return new Response('Invalid ID', {status: 400}); // Then use in prepared statement",
       "effectiveness": 0.85,
@@ -433,7 +536,9 @@
     },
     {
       "id": "CS-CODE-016",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Cost-bearing endpoints require auth BEFORE external API call — gate pattern prevents abuse charges",
       "example": "// WRONG: const result = await anthropic.messages.create(...); if (!auth) return 401;\n// RIGHT: if (!await verifyAuth(req)) return 401; const result = await anthropic.messages.create(...);",
       "effectiveness": 0.93,
@@ -443,17 +548,22 @@
     },
     {
       "id": "CS-CODE-017",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Persistent rate limiting via KV/Durable Objects instead of in-memory counters in serverless environments",
       "example": "const key = `rate:${ip}:${minute}`; const count = parseInt(await env.RATE_KV.get(key) || '0'); if (count > 60) return new Response('Too Many Requests', {status: 429}); await env.RATE_KV.put(key, String(count + 1), {expirationTtl: 120});",
       "effectiveness": 0.82,
       "seen_count": 1,
       "first_seen": "2026-03-09",
       "last_seen": "2026-03-09"
-    }
-  ,{
+    },
+    {
       "id": "CS-WEBDESIGN-008",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "Multi-trigger picker init: rAF + window load + setTimeout safety net + resize reset — ensures init runs after paint on all mobile browsers",
       "example": "requestAnimationFrame(initPicker); window.addEventListener('load', initPicker); setTimeout(initPicker, 200); window.addEventListener('resize', () => { pickerReady = false; setTimeout(initPicker, 50); });",
       "effectiveness": 0.92,
@@ -463,17 +573,22 @@
     },
     {
       "id": "CS-WEBDESIGN-009",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "Velocity-based momentum projection for swipe snapping — track instantaneous velocity during drag, project final position, gives native-feel inertia",
       "example": "const proj = lonOff + lonDrag.v * 120; const ci = Math.round((lonW()/2 - ITEM_W/2 - proj) / ITEM_W); lonSnapTo(ci, true);",
-      "effectiveness": 0.90,
+      "effectiveness": 0.9,
       "seen_count": 1,
       "first_seen": "2026-03-11",
       "last_seen": "2026-03-11"
     },
     {
       "id": "CS-CODE-018",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Exact calendar month calculation handling variable month lengths and leap years — avoids 30-day approximation errors in billing/duration contexts",
       "example": "let remDays = day2 - day1; if (remDays < 0) { months -= 1; remDays += new Date(y2, m2, 0).getDate(); } return months + remDays / daysInMth;",
       "effectiveness": 0.93,
@@ -483,7 +598,10 @@
     },
     {
       "id": "CS-WEBDESIGN-010",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "Proximity-based visual classes (center/near1/near2) on picker items — CSS-driven scale/opacity cascade without JS animation loop",
       "example": "const d = Math.abs(i - ci); el.classList.toggle('center', d===0); el.classList.toggle('near1', d===1); el.classList.toggle('near2', d===2);",
       "effectiveness": 0.87,
@@ -493,7 +611,10 @@
     },
     {
       "id": "CS-WEBDESIGN-011",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "Runtime container-width-relative offset for picker tape — offForIdx(i) uses element.offsetWidth at call time, survives resize and responsive layouts",
       "example": "function offForIdx(i) { return lonW() / 2 - ITEM_W / 2 - i * ITEM_W; } // lonW() = picker.offsetWidth — called live, not cached",
       "effectiveness": 0.88,
@@ -503,7 +624,9 @@
     },
     {
       "id": "CS-WEBDESIGN-012",
-      "domains": ["webdesign"],
+      "domains": [
+        "webdesign"
+      ],
       "pattern": "Gradient fade ::before/::after pseudo-elements on picker edges — depth illusion with zero extra DOM nodes",
       "example": ".picker::before { left:0; background: linear-gradient(to right, var(--bg) 15%, transparent); } .picker::after { right:0; background: linear-gradient(to left, var(--bg) 15%, transparent); }",
       "effectiveness": 0.85,
@@ -513,7 +636,10 @@
     },
     {
       "id": "CS-WEBDESIGN-013",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "Clamp drag offset with elastic overshoot allowance (±0.6 * ITEM_W) — prevents tape from escaping bounds while allowing slight rubber-band feel at edges",
       "example": "function clampOff(off) { return Math.max(offForIdx(n-1) - ITEM_W*.6, Math.min(offForIdx(0) + ITEM_W*.6, off)); }",
       "effectiveness": 0.83,
@@ -523,18 +649,22 @@
     },
     {
       "id": "CS-WEBDESIGN-014",
-      "domains": ["code", "webdesign"],
+      "domains": [
+        "code",
+        "webdesign"
+      ],
       "pattern": "Abandon complex custom picker for native <input type='date'> when layout complexity outweighs benefit — saves hours, native works perfectly on mobile",
       "example": "After persistent display issues with custom date picker (offsetWidth=0 loop), replaced with native <input type='date' color-scheme='dark'> — zero bugs, handles leap years, calendar UI included",
-      "effectiveness": 0.80,
+      "effectiveness": 0.8,
       "seen_count": 1,
       "first_seen": "2026-03-11",
       "last_seen": "2026-03-11"
-    }
-  ],
-  ,{
+    },
+    {
       "id": "CS-CODE-019",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Dual-write transitoire pour migration de format sans downtime — écrire simultanément dans l'ancien format (JSON) et le nouveau (SQLite) pendant N sessions, valider la parité, puis basculer la lecture",
       "example": "Pendant 10 sessions: write → json ET sqlite. Après 10 sessions: assert(json_count == sqlite_count); switch reads to sqlite; disable json writes. Rollback: re-enable json reads if sqlite checksum fails.",
       "effectiveness": 0.88,
@@ -544,7 +674,9 @@
     },
     {
       "id": "CS-CODE-020",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "File-lock externe pour SQLite write sérialisation multi-process — utiliser un lockfile pour sérialiser les writes de plusieurs agents parallèles sans modifier l'architecture des agents",
       "example": "const lock = require('proper-lockfile'); const release = await lock.lock('immune.sqlite.lock', {retries: 5, minTimeout: 100}); try { db.prepare(...).run(...); } finally { await release(); }",
       "effectiveness": 0.82,
@@ -554,7 +686,9 @@
     },
     {
       "id": "CS-CODE-021",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "SQLite FTS5 comme alternative zero-dependency aux vecteurs pour recherche sémantique légère — BM25 natif couvre 80% des cas sans embedding, zero dépendance externe, query < 5ms sur 10K chunks",
       "example": "CREATE VIRTUAL TABLE chunks_fts USING fts5(text, antibody_id, domain, tokenize='porter ascii'); SELECT antibody_id, rank FROM chunks_fts WHERE chunks_fts MATCH ? ORDER BY rank LIMIT 10;",
       "effectiveness": 0.85,
@@ -564,38 +698,172 @@
     },
     {
       "id": "CS-CODE-022",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Adapter pattern pour découpler les consommateurs du format de stockage — exposer une interface stable (getAntibodies, addAntibody, getStrategies) que tous les skills consomment, indépendamment du backend (JSON ou SQLite)",
       "example": "// immune-adapter.js\nclass ImmunAdapter { async getHotAntibodies(domains) { /* reads from SQLite or JSON based on config */ } }\n// chimera/config.yaml: immune_adapter: '../immune/immune-adapter.js'",
-      "effectiveness": 0.90,
+      "effectiveness": 0.9,
       "seen_count": 1,
       "first_seen": "2026-03-12",
       "last_seen": "2026-03-12"
     },
     {
       "id": "CS-CODE-023",
-      "domains": ["code"],
-      "pattern": "Score de qualité normalisé par domaine avec baseline calibrée sur données historiques — calculer mean/std sur les 100 derniers outputs par domaine avant de définir les seuils PASS/FAIL",
-      "example": "domain_baselines: { code: { mean: 74.2, std: 8.3, pass_threshold: 65 }, fitness: { mean: 71.5, std: 11.2, pass_threshold: 60 } }. z_score = (score - mean) / std. PASS si score > (mean - 1*std).",
-      "effectiveness": 0.78,
+      "domains": [
+        "code"
+      ],
+      "pattern": "Constant-time comparison for all cryptographic values (HMAC, signatures, tokens) to prevent timing side-channel attacks",
+      "example": "crypto.timingSafeEqual(Buffer.from(computed,hex), Buffer.from(expected,hex))",
+      "effectiveness": 0.95,
       "seen_count": 1,
-      "first_seen": "2026-03-12",
-      "last_seen": "2026-03-12"
+      "first_seen": "2026-03-14",
+      "last_seen": "2026-03-14"
     },
     {
       "id": "CS-CODE-024",
-      "domains": ["code"],
+      "domains": [
+        "code"
+      ],
       "pattern": "Sanitizer de secrets avant indexation de fichiers de configuration — scanner les fichiers markdown avant chunking pour remplacer les patterns sensibles par des placeholders non-indexés",
       "example": "const SECRET_PATTERNS = [/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g, /sk-[a-zA-Z0-9]{32,}/g, /Bearer\\s+[\\S]+/g]; function sanitize(text) { return SECRET_PATTERNS.reduce((t, p) => t.replace(p, '[REDACTED]'), text); }",
       "effectiveness": 0.87,
       "seen_count": 1,
       "first_seen": "2026-03-12",
       "last_seen": "2026-03-12"
+    },
+    {
+      "id": "CS-TRAVEL-001",
+      "domains": [
+        "travel",
+        "writing"
+      ],
+      "pattern": "Use specific numbers in titles (Top 10, 7 best, 5 must-see) — articles with numbers get 2-3x higher CTR than generic titles",
+      "example": "10 Plages Paradisiaques du Salvador vs Decouvrir les Plages du Salvador",
+      "effectiveness": 0.8,
+      "seen_count": 1,
+      "first_seen": "2026-03-13",
+      "last_seen": "2026-03-13"
+    },
+    {
+      "id": "CS-TRAVEL-002",
+      "domains": [
+        "travel",
+        "writing"
+      ],
+      "pattern": "Lead with practical info (budget, transport, safety) before descriptive content — practical guides have 3x more clicks than generic descriptions",
+      "example": "Start with Budget section: daily cost breakdown, then How to get there, then What to see",
+      "effectiveness": 0.8,
+      "seen_count": 1,
+      "first_seen": "2026-03-13",
+      "last_seen": "2026-03-13"
+    },
+    {
+      "id": "CS-TRAVEL-003",
+      "domains": [
+        "travel",
+        "writing"
+      ],
+      "pattern": "Start article with direct-answer div for Google featured snippets — concise question + 2-3 sentence answer",
+      "example": "<div class=direct-answer><strong>Quand visiter El Salvador ?</strong> La meilleure periode est de novembre a avril (saison seche).</div>",
+      "effectiveness": 0.7,
+      "seen_count": 1,
+      "first_seen": "2026-03-13",
+      "last_seen": "2026-03-13"
+    },
+    {
+      "id": "CS-TRAVEL-004",
+      "domains": [
+        "travel",
+        "writing"
+      ],
+      "pattern": "Add FAQ section at end of article with 3-5 real search queries for Google People Also Ask boxes",
+      "example": "<h2>FAQ</h2><h3>Le Salvador est-il dangereux pour les touristes ?</h3><p>Depuis 2022, le taux de criminalite a drastiquement baisse...</p>",
+      "effectiveness": 0.7,
+      "seen_count": 1,
+      "first_seen": "2026-03-13",
+      "last_seen": "2026-03-13"
+    },
+    {
+      "id": "CS-TRAVEL-005",
+      "domains": [
+        "travel",
+        "writing"
+      ],
+      "pattern": "Add cross-links to 2-3 related articles from the same blog to boost internal linking and reduce bounce rate",
+      "example": "Voir aussi: <a href=/blog/surf-el-salvador>Meilleurs spots de surf</a> | <a href=/blog/plages-el-tunco>Guide El Tunco</a>",
+      "effectiveness": 0.7,
+      "seen_count": 1,
+      "first_seen": "2026-03-13",
+      "last_seen": "2026-03-13"
+    },
+    {
+      "id": "CS-TRAVEL-006",
+      "domains": [
+        "travel",
+        "writing"
+      ],
+      "pattern": "Include insider tips that generic travel guides miss — local transportation hacks, hidden spots, safety nuances, real costs",
+      "example": "Le chicken bus depuis San Salvador coute $1.50 (vs $25 pour un shuttle touristique). Descendre a El Congo pour le Cerro Verde.",
+      "effectiveness": 0.75,
+      "seen_count": 1,
+      "first_seen": "2026-03-13",
+      "last_seen": "2026-03-13"
+    },
+    {
+      "id": "CS-TRAVEL-007",
+      "domains": [
+        "travel",
+        "writing"
+      ],
+      "pattern": "Optimize titles per language independently — not literal translations. FR: question format, EN: listicle format, ES: imperative format",
+      "example": "FR: Ou surfer au Salvador ? EN: Best 8 Surf Spots in El Salvador ES: Descubre los mejores spots de surf en El Salvador",
+      "effectiveness": 0.75,
+      "seen_count": 1,
+      "first_seen": "2026-03-13",
+      "last_seen": "2026-03-13"
+    },
+    {
+      "id": "CS-TRAVEL-008",
+      "domains": [
+        "travel",
+        "writing"
+      ],
+      "pattern": "Use info-box divs for lists and comparisons instead of HTML tables — tables cause horizontal scroll on mobile and hurt UX",
+      "example": "<div class=info-box><h4>Budget journalier</h4><ul><li><strong>Backpacker</strong>: $30-40/jour</li><li><strong>Confort</strong>: $60-80/jour</li></ul></div>",
+      "effectiveness": 0.8,
+      "seen_count": 1,
+      "first_seen": "2026-03-13",
+      "last_seen": "2026-03-13"
+    },
+    {
+      "id": "CS-GLOBAL-001",
+      "domains": [
+        "_global"
+      ],
+      "pattern": "Always prefer the simplest solution that works. Before implementing, ask: can this be done with less code, fewer files, fewer abstractions? If a feature already exists in the system, use it instead of rebuilding. Avoid over-engineering, premature abstractions, and unnecessary wrappers.",
+      "example": "Instead of creating a new Phase 0.5 cheatsheet injection system in a skill, just use the existing /immune command that already does it.",
+      "effectiveness": 0.9,
+      "seen_count": 1,
+      "first_seen": "2026-03-13",
+      "last_seen": "2026-03-13"
+    },
+    {
+      "id": "CS-GLOBAL-002",
+      "domains": [
+        "_global"
+      ],
+      "pattern": "For any arithmetic or counting task, decompose into explicit steps. Write each intermediate result before combining. Never compute multi-step expressions in your head — show each step: A = 17*23 = 391, B = 456/12 = 38, etc. For counting, number each item explicitly (1. The, 2. quick, 3. brown...). For ceiling/floor operations, compute the raw value first then apply ceil/floor separately.",
+      "example": "Instead of computing (17*23)+(456/12)-(89*3)+17 directly, write: Step 1: 17*23=391. Step 2: 456/12=38. Step 3: 89*3=267. Step 4: 391+38-267+17=179.",
+      "effectiveness": 0.9,
+      "seen_count": 1,
+      "first_seen": "2026-03-13",
+      "last_seen": "2026-03-13"
     }
   ],
   "stats": {
     "outputs_assisted": 25,
     "strategies_applied": 97,
-    "strategies_total": 59
+    "strategies_total": 69
   }
 }
