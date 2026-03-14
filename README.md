@@ -1,4 +1,4 @@
-# Immune System v4 — Hybrid Adaptive Memory for Claude Code
+# Immune System v4.1 — Hybrid Adaptive Memory for Claude Code
 
 [![Stars](https://img.shields.io/github/stars/contactjccoaching-wq/immune?style=social)](https://github.com/contactjccoaching-wq/immune)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -14,25 +14,36 @@ Both memories use **Hot/Cold tiering** to keep context lean, and **learn automat
 
 ```
 [User Request]
-  --> Step 0: Inject cheatsheet strategies (positive patterns)
-  --> Step 1: Generate output (with cheatsheet context)
-  --> Step 2: Immune scan (detect known + new errors)
-  --> Step 3: Fix errors + learn new antibodies
+  --> Step -1: Context search (recall past sessions via FTS4)
+  --> Step 0:  Inject cheatsheet strategies (positive patterns)
+  --> Step 1:  Generate output (with cheatsheet context)
+  --> Step 2:  Immune scan (detect known + new errors)
+  --> Step 3:  Fix errors + learn new antibodies
   --> Step 3b: Detect + learn new winning strategies
+  --> Step 4:  Score (0-100, domain-normalized z-score)
+  --> Step 6:  Session log (for future context recall)
+  --> Step 7:  Flush (save pending patterns before context compaction)
 ```
 
-The system improves with usage. Each scan can discover new antibodies (things to avoid) and new strategies (things to repeat). These persist across sessions.
+The system improves with usage. Each scan can discover new antibodies (things to avoid) and new strategies (things to repeat). These persist across sessions in SQLite FTS4 + JSON dual-write.
 
 ## Key Features
 
 - **Dual memory**: Separate files for antibodies (`immune_memory.json`) and strategies (`cheatsheet_memory.json`) — never combined in the same prompt
+- **SQLite FTS4**: Full-text search index for instant pattern retrieval across 500+ antibodies. No more loading everything into context
+- **Adapter CLI**: Single entry point (`immune-adapter.js`) for all reads/writes — prevents corruption from concurrent agents, with file locking
+- **Sanitizer**: Secrets (API keys, tokens, passwords) automatically redacted before FTS indexing
 - **Hot/Cold tiering**: Active patterns sent in detail, dormant ones as keywords. Keeps Haiku's context under ~400 tokens typical
 - **Multi-domain**: `domains: ["fitness", "code"]` — match antibodies/strategies across multiple domains simultaneously
+- **ContextMemory**: Daily session logs indexed in FTS4 — the system recalls past scans for historical awareness (90-day retention + archive)
+- **Scoring**: Universal 0-100 score with domain-normalized z-scores (Welford algorithm). PASS/FAIL threshold per domain
+- **Flush**: Pre-compaction save with quality gate — pending patterns are persisted before Claude's context compression
+- **Housekeeping**: Auto-archival of unused patterns after 180 days, max limits (500 AB, 300 CS, 50MB SQLite)
 - **Auto-learning**: New patterns discovered during scans are added automatically
-- **COLD reactivation**: Dormant patterns reactivate when re-detected
+- **COLD reactivation**: Dormant patterns reactivate when re-detected (FTS4 deduplication prevents duplicates)
 - **Strategy pruning**: Low-effectiveness strategies are auto-removed after enough data
 - **3 modes**: `full` (cheatsheet + scan), `scan-only`, `cheatsheet-only`
-- **Backwards compatible**: Reads v2 memory files and auto-migrates
+- **Backwards compatible**: Reads v2/v3 memory files and auto-migrates
 
 ## Usage
 
@@ -268,13 +279,30 @@ Inspired by biological immune systems + Stanford's Dynamic Cheatsheet (2025):
 | Hot/Cold | Active vs memory T-cells | Tiered by severity, frequency, recency |
 | Reactivation | Immune recall response | COLD patterns reactivated on re-detection |
 | Pruning | Apoptosis | Low-effectiveness strategies auto-removed |
+| FTS4 Index | Thymus (pattern matching) | `immune.sqlite` — instant full-text search |
+| Adapter | Blood-brain barrier | `immune-adapter.js` — single controlled entry point |
+| Sanitizer | Immune tolerance | `sanitizer.js` — redacts self (secrets) before indexing |
+| ContextMemory | Episodic memory | `context/` — daily session logs, 90-day recall |
+| Score | Vital signs | 0-100 health score with domain baselines |
+| Flush | Synaptic consolidation | Save pending patterns before memory compression |
+
+### Storage (v4.1)
+
+```
+immune-adapter.js          ← single CLI entry point (18 commands)
+    ├── immune.sqlite      ← SQLite FTS4 (primary, full-text search)
+    ├── immune_memory.json ← JSON fallback (dual-write, 73 antibodies)
+    ├── cheatsheet_memory.json ← JSON fallback (dual-write, 59 strategies)
+    ├── sanitizer.js       ← secret redaction before indexing
+    └── context/           ← daily session logs (FTS4-indexed)
+```
 
 ## Token Budget
 
 - Antibodies: max 15 hot x ~80 tokens = ~1,200 tokens (scan prompt only)
 - Strategies: max 15 hot x ~60 tokens = ~900 tokens (generation prompt only)
 - **Never combined** — cheatsheet at generation time, antibodies at scan time
-- With domain filtering: ~400 tokens typical per injection
+- With domain filtering + FTS4: ~400 tokens typical per injection
 
 ## Integration with Chimera
 
