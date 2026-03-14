@@ -56,6 +56,36 @@ The system improves with usage. Each scan can discover new antibodies (things to
 /immune                          # scans last output in conversation
 ```
 
+## Configuration
+
+All settings are in `config.yaml`. Key user-tunable thresholds:
+
+```yaml
+deduplication:
+  engine: "auto"               # "auto" | "embeddings" | "jaccard"
+  threshold_embedding: 0.7     # Cosine similarity (0-1). Lower = more aggressive dedup
+  threshold_jaccard: 0.55      # Jaccard fallback threshold (0-1)
+
+tiers:
+  hot:
+    max_per_scan: 15           # Max antibodies sent to Haiku per scan
+    criteria:
+      severity_critical: true  # Always HOT if critical
+      min_seen_count: 3        # HOT if seen >= 3 times
+      max_days_cold: 30        # HOT if seen in last 30 days
+
+scoring:
+  deductions:
+    critical: 20               # Points lost per critical issue
+    warning: 10
+    info: 5
+```
+
+**Tuning tips:**
+- Getting too many duplicate antibodies? Lower `threshold_embedding` to `0.6`
+- Legitimate patterns rejected as duplicates? Raise to `0.75`
+- Want more antibodies per scan? Increase `max_per_scan` (costs more tokens)
+
 ## Domains
 
 Pre-configured: `fitness`, `code`, `writing`, `research`, `strategy`, `webdesign`, `_global`
