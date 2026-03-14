@@ -177,14 +177,16 @@ For each antibody matched by the scanner, update via adapter:
 node ~/.claude/skills/immune/immune-adapter.js update-antibody --id {antibody_id} --increment_seen true --last_seen {today}
 ```
 
-**3b. New threats — deduplicate against COLD:**
+**3b. New threats — deduplicate via similarity scoring:**
 For each new threat in `new_threats_detected`:
 
-1. Search for similar existing antibodies via FTS4:
+1. Check for duplicate using multi-criteria similarity (Jaccard + substring + domain):
 ```bash
-node ~/.claude/skills/immune/immune-adapter.js search --query "{pattern keywords}" --type antibodies --limit 3
+node ~/.claude/skills/immune/immune-adapter.js check-duplicate --pattern "{pattern}" --domains '{domains_json}' --type antibody
 ```
-2. **If FTS4 returns a match** (same domain + similar pattern) → REACTIVATE:
+Returns `{ duplicate: true/false, best_match: { id, score, pattern }, threshold: 0.7 }`
+
+2. **If duplicate is true** (score >= 0.7, same domain + similar pattern) → REACTIVATE:
    - Update the matched antibody: `update-antibody --id {matched_id} --increment_seen true --last_seen {today}`
    - Log: `[IMMUNE] Reactivated COLD antibody {id}: {pattern}`
    - Do NOT create a new antibody (prevents duplicates)
@@ -205,13 +207,13 @@ Log: `[IMMUNE] Memory: {total} antibodies ({n_hot} hot, {n_cold} cold) | +{new} 
 
 Skip if `mode == "scan-only"` or no `new_strategies_detected` in scan result.
 
-**3b-i. Deduplicate:**
+**3b-i. Deduplicate via similarity scoring:**
 For each new strategy in `new_strategies_detected`:
-1. Search for similar existing strategies via FTS4:
+1. Check for duplicate using multi-criteria similarity:
 ```bash
-node ~/.claude/skills/immune/immune-adapter.js search --query "{pattern keywords}" --type strategies --limit 3
+node ~/.claude/skills/immune/immune-adapter.js check-duplicate --pattern "{pattern}" --domains '{domains_json}' --type strategy
 ```
-2. **If FTS4 returns a match** (overlapping domains + similar pattern) → REINFORCE:
+2. **If duplicate is true** (score >= 0.7, overlapping domains + similar pattern) → REINFORCE:
    - Calculate new effectiveness: `new_eff = old_eff * 0.8 + reported_eff * 0.2` (exponential moving average)
    - Update: `update-strategy --id {matched_id} --increment_seen true --last_seen {today} --effectiveness {new_eff}`
    - Log: `[IMMUNE] Reinforced strategy {id}: {pattern} (eff: {old}→{new})`

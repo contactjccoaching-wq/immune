@@ -109,6 +109,16 @@ scoring:
     mean: 75
     std: 10
 
+deduplication:
+  engine: "auto"            # "auto" (embeddings if available, else jaccard) | "embeddings" | "jaccard"
+  model: "Xenova/all-MiniLM-L6-v2"   # Local embedding model (384 dims, ~22MB, WASM)
+  threshold_embedding: 0.7   # Cosine similarity threshold (natural gap: non-dup <0.56, dup >0.74)
+  threshold_jaccard: 0.55    # Score threshold for Jaccard fallback
+  weights:                   # Jaccard fallback weights
+    jaccard: 0.5             # Word overlap (Jaccard index)
+    substring: 0.3           # Longest common contiguous word sequence
+    domain: 0.2              # Same domain bonus (1.0 if match, 0.0 if not)
+
 flush:
   quality_gate: true
   min_pattern_length: 20

@@ -23,6 +23,21 @@ const MAX_CHUNKS = 2000;
 const RETENTION_DAYS = 90;
 const LIMITS = { max_antibodies: 500, max_strategies: 300, max_sqlite_mb: 50, max_context_files: 500 };
 
+// ── Deduplication Config ────────────────────────────────
+
+const DEDUP_THRESHOLD_JACCARD = 0.55;
+const DEDUP_THRESHOLD_EMBEDDING = 0.7;
+const DEDUP_WEIGHTS = { jaccard: 0.5, substring: 0.3, domain: 0.2 };
+const EMBEDDING_MODEL = 'Xenova/all-MiniLM-L6-v2';
+
+const STOPWORDS = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be',
+  'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
+  'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need', 'dare',
+  'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from', 'as', 'into',
+  'through', 'during', 'before', 'after', 'above', 'below', 'between',
+  'and', 'but', 'or', 'nor', 'not', 'so', 'yet', 'both', 'either', 'neither',
+  'this', 'that', 'these', 'those', 'it', 'its', 'use', 'using', 'used']);
+
 // ── Helpers ─────────────────────────────────────────────
 
 function today() { return new Date().toISOString().slice(0, 10); }
@@ -155,14 +170,17 @@ function initSchema(db) {
     created_at TEXT DEFAULT (datetime('now'))
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS stats (key TEXT PRIMARY KEY, value TEXT)`);
-  // FTS5 — catch error if already exists with different schema
+  // FTS4
   try {
     db.run(`CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts4(
       text, source_type, source_id, domains, tokenize=porter
     )`);
-  } catch (e) {
-    // FTS5 table exists with compatible schema
-  }
+  } catch (e) {}
+  // Embeddings cache
+  db.run(`CREATE TABLE IF NOT EXISTS embeddings (
+    id TEXT PRIMARY KEY, type TEXT NOT NULL,
+    vector BLOB NOT NULL, pattern_hash TEXT NOT NULL
+  )`);
 }
 
 function saveDB(db) {
@@ -707,9 +725,10 @@ async function cmdFlushPending(args) {
     const reject = qualityGate(ab, 'antibody');
     if (reject) { flushed.rejected.push({ id: ab.id, reason: reject }); continue; }
 
-    // FTS4 duplicate check
-    const dup = checkFTSDuplicate(db, ab.pattern, 'antibody');
-    if (dup) { flushed.rejected.push({ id: ab.id, reason: `duplicate of ${dup}` }); continue; }
+    // Similarity-based duplicate check (embeddings → Jaccard fallback)
+    const abDomains = ab.domains || ['_global'];
+    const dup = await findBestDuplicate(ab.pattern, abDomains, loadAntibodies().antibodies, 'antibody');
+    if (dup) { flushed.rejected.push({ id: ab.id, reason: `duplicate of ${dup.id} (${dup.engine}, score: ${dup.score})` }); continue; }
 
     ab.quality_gate = 1;
     ab.first_seen = ab.first_seen || today();
@@ -735,8 +754,10 @@ async function cmdFlushPending(args) {
     const reject = qualityGate(cs, 'strategy');
     if (reject) { flushed.rejected.push({ id: cs.id, reason: reject }); continue; }
 
-    const dup = checkFTSDuplicate(db, cs.pattern, 'strategy');
-    if (dup) { flushed.rejected.push({ id: cs.id, reason: `duplicate of ${dup}` }); continue; }
+    // Similarity-based duplicate check (embeddings → Jaccard fallback)
+    const csDomains = cs.domains || ['_global'];
+    const dup = await findBestDuplicate(cs.pattern, csDomains, loadStrategies().strategies, 'strategy');
+    if (dup) { flushed.rejected.push({ id: cs.id, reason: `duplicate of ${dup.id} (${dup.engine}, score: ${dup.score})` }); continue; }
 
     cs.quality_gate = 1;
     cs.first_seen = cs.first_seen || today();
@@ -774,22 +795,209 @@ function qualityGate(item, type) {
   return null;
 }
 
-function checkFTSDuplicate(db, pattern, type) {
-  // Extract first 3 significant words for FTS match
-  const words = pattern.split(/\s+/).filter(w => w.length > 3).slice(0, 3).join(' ');
-  if (!words) return null;
+// ── Embeddings Layer (auto-install, lazy load) ──────────
+
+let _embedder = null;
+let _embeddingsAvailable = null; // null = not checked, true/false = result
+
+async function ensureTransformersInstalled() {
+  if (_embeddingsAvailable !== null) return _embeddingsAvailable;
   try {
-    const stmt = db.prepare(`SELECT source_id FROM chunks_fts
-      WHERE chunks_fts MATCH ? AND source_type = ? LIMIT 1`);
-    stmt.bind([words, type]);
-    if (stmt.step()) {
-      const id = stmt.getAsObject().source_id;
-      stmt.free();
-      return id;
+    await import('@xenova/transformers');
+    _embeddingsAvailable = true;
+    return true;
+  } catch {
+    try {
+      console.error('[IMMUNE] Installing embeddings engine (one-time, ~50MB)...');
+      require('child_process').execSync('npm install @xenova/transformers@2.17.2', {
+        cwd: IMMUNE_DIR, stdio: 'pipe', timeout: 120000
+      });
+      _embeddingsAvailable = true;
+      console.error('[IMMUNE] Embeddings engine installed.');
+      return true;
+    } catch {
+      console.error('[IMMUNE] Embeddings unavailable, using Jaccard fallback.');
+      _embeddingsAvailable = false;
+      return false;
     }
+  }
+}
+
+async function getEmbedder() {
+  if (_embedder) return _embedder;
+  const ok = await ensureTransformersInstalled();
+  if (!ok) return null;
+  try {
+    const { pipeline } = await import('@xenova/transformers');
+    console.error('[IMMUNE] Loading embedding model (first time may download ~22MB)...');
+    _embedder = await pipeline('feature-extraction', EMBEDDING_MODEL);
+    console.error('[IMMUNE] Embedding model ready.');
+    return _embedder;
+  } catch (e) {
+    console.error(`[IMMUNE] Embedding model failed: ${e.message}. Using Jaccard.`);
+    _embeddingsAvailable = false;
+    return null;
+  }
+}
+
+async function embedText(text) {
+  const embedder = await getEmbedder();
+  if (!embedder) return null;
+  const output = await embedder(text, { pooling: 'mean', normalize: true });
+  return Array.from(output.data);
+}
+
+function cosineSimilarity(a, b) {
+  let dot = 0, normA = 0, normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+function patternHash(text) {
+  // Simple hash for cache invalidation
+  let h = 0;
+  for (let i = 0; i < text.length; i++) {
+    h = ((h << 5) - h + text.charCodeAt(i)) | 0;
+  }
+  return h.toString(36);
+}
+
+async function getCachedEmbedding(db, id, type, pattern) {
+  const hash = patternHash(pattern);
+  const stmt = db.prepare('SELECT vector, pattern_hash FROM embeddings WHERE id = ? AND type = ?');
+  stmt.bind([id, type]);
+  if (stmt.step()) {
+    const row = stmt.getAsObject();
     stmt.free();
-  } catch {}
+    if (row.pattern_hash === hash) {
+      // Cache hit
+      const buf = new Float32Array(new Uint8Array(row.vector).buffer);
+      return Array.from(buf);
+    }
+  } else {
+    stmt.free();
+  }
+  // Cache miss — compute and store
+  const vec = await embedText(pattern);
+  if (!vec) return null;
+  const blob = Buffer.from(new Float32Array(vec).buffer);
+  db.run('INSERT OR REPLACE INTO embeddings (id, type, vector, pattern_hash) VALUES (?, ?, ?, ?)',
+    [id, type, blob, hash]);
+  saveDB(db);
+  return vec;
+}
+
+async function findBestDuplicateEmbeddings(pattern, domains, items, type) {
+  const db = await getDB();
+  const newVec = await embedText(pattern);
+  if (!newVec) return null;
+
+  let bestScore = 0;
+  let bestItem = null;
+  for (const item of items) {
+    const cachedVec = await getCachedEmbedding(db, item.id, type, item.pattern);
+    if (!cachedVec) continue;
+    const score = cosineSimilarity(newVec, cachedVec);
+    if (score > bestScore) {
+      bestScore = score;
+      bestItem = item;
+    }
+  }
+  if (bestScore >= DEDUP_THRESHOLD_EMBEDDING) {
+    return { id: bestItem.id, score: Math.round(bestScore * 1000) / 1000, pattern: bestItem.pattern, engine: 'embedding' };
+  }
   return null;
+}
+
+// ── Similarity Scoring (Jaccard Fallback) ───────────────
+
+function stem(word) {
+  if (word.length > 4 && word.endsWith('ing')) return word.slice(0, -3);
+  if (word.length > 3 && word.endsWith('ed') && !word.endsWith('eed')) return word.slice(0, -2);
+  if (word.length > 3 && word.endsWith('s') && !word.endsWith('ss') && !word.endsWith('us') && !word.endsWith('is')) return word.slice(0, -1);
+  return word;
+}
+
+function tokenize(text) {
+  return new Set(
+    text.toLowerCase().split(/[\s\-_\/.,;:!?'"()[\]{}]+/)
+      .filter(w => w.length >= 2 && !STOPWORDS.has(w))
+      .map(stem)
+  );
+}
+
+function jaccardIndex(setA, setB) {
+  if (setA.size === 0 && setB.size === 0) return 1;
+  const inter = [...setA].filter(w => setB.has(w)).length;
+  const union = new Set([...setA, ...setB]).size;
+  return union === 0 ? 0 : inter / union;
+}
+
+function longestCommonSubsequence(wordsA, wordsB) {
+  // Longest common contiguous word sequence ratio
+  if (wordsA.length === 0 || wordsB.length === 0) return 0;
+  let maxLen = 0;
+  for (let i = 0; i < wordsA.length; i++) {
+    for (let j = 0; j < wordsB.length; j++) {
+      let len = 0;
+      while (i + len < wordsA.length && j + len < wordsB.length
+             && wordsA[i + len] === wordsB[j + len]) {
+        len++;
+      }
+      if (len > maxLen) maxLen = len;
+    }
+  }
+  return maxLen / Math.max(wordsA.length, wordsB.length);
+}
+
+function similarityScore(patternA, patternB, domainsA, domainsB) {
+  const tokA = tokenize(patternA);
+  const tokB = tokenize(patternB);
+  const wordsA = [...tokA];
+  const wordsB = [...tokB];
+
+  const jaccard = jaccardIndex(tokA, tokB);
+  const substring = longestCommonSubsequence(wordsA, wordsB);
+
+  const dA = Array.isArray(domainsA) ? domainsA : [domainsA || '_global'];
+  const dB = Array.isArray(domainsB) ? domainsB : [domainsB || '_global'];
+  const domainBonus = dA.some(d => dB.includes(d) || d === '_global' || dB.includes('_global')) ? 1.0 : 0.0;
+
+  return (jaccard * DEDUP_WEIGHTS.jaccard)
+       + (substring * DEDUP_WEIGHTS.substring)
+       + (domainBonus * DEDUP_WEIGHTS.domain);
+}
+
+function findBestDuplicateJaccard(pattern, domains, items) {
+  let bestScore = 0;
+  let bestItem = null;
+  for (const item of items) {
+    const score = similarityScore(pattern, item.pattern, domains, item.domains);
+    if (score > bestScore) {
+      bestScore = score;
+      bestItem = item;
+    }
+  }
+  if (bestScore >= DEDUP_THRESHOLD_JACCARD) {
+    return { id: bestItem.id, score: Math.round(bestScore * 1000) / 1000, pattern: bestItem.pattern, engine: 'jaccard' };
+  }
+  return null;
+}
+
+async function findBestDuplicate(pattern, domains, items, type) {
+  // Try embeddings first (best quality)
+  if (_embeddingsAvailable !== false) {
+    const result = await findBestDuplicateEmbeddings(pattern, domains, items, type);
+    if (result) return result;
+    // If embeddings loaded but no match found, trust that result
+    if (_embeddingsAvailable === true) return null;
+  }
+  // Fallback to Jaccard
+  return findBestDuplicateJaccard(pattern, domains, items);
 }
 
 // ── Housekeeping ────────────────────────────────────────
@@ -944,6 +1152,69 @@ async function cmdHousekeep() {
   return { ok: true, ...report };
 }
 
+// ── Check Duplicate Command ─────────────────────────────
+
+async function cmdCheckDuplicate(args) {
+  const pattern = args.pattern;
+  if (!pattern) return { error: 'Usage: check-duplicate --pattern "..." --domains \'["code"]\' --type antibody' };
+  const domains = JSON.parse(args.domains || '["_global"]');
+  const type = args.type || 'antibody';
+
+  const items = type === 'antibody' ? loadAntibodies().antibodies : loadStrategies().strategies;
+  const match = await findBestDuplicate(pattern, domains, items, type);
+
+  return {
+    duplicate: !!match,
+    best_match: match || null,
+    engine: match ? match.engine : (_embeddingsAvailable ? 'embedding' : 'jaccard'),
+    thresholds: { embedding: DEDUP_THRESHOLD_EMBEDDING, jaccard: DEDUP_THRESHOLD_JACCARD },
+    candidates_checked: items.length
+  };
+}
+
+async function cmdSimilarityTest() {
+  const tests = [
+    { a: 'Never use --file with wrangler D1', b: 'Avoid wrangler D1 --file flag', dA: ['code'], dB: ['code'], expect: 'dup' },
+    { a: 'SQL injection in user login', b: 'SQL injection in payment API', dA: ['code'], dB: ['code'], expect: 'not-dup' },
+    { a: 'Always set category_id', b: 'Always set category_id in translations', dA: ['code'], dB: ['code'], expect: 'dup' },
+    { a: 'Use info-box for lists', b: 'Use CSS grid for layout', dA: ['webdesign'], dB: ['webdesign'], expect: 'not-dup' },
+    { a: 'Never use tables in blog HTML', b: 'Avoid HTML table tags in blog articles', dA: ['code'], dB: ['code'], expect: 'dup' },
+    { a: 'Always validate JWT expiry', b: 'Always validate JWT expiry', dA: ['code'], dB: ['fitness'], expect: 'dup' },
+  ];
+
+  // Test both engines
+  const jaccardResults = [];
+  for (const t of tests) {
+    const score = similarityScore(t.a, t.b, t.dA, t.dB);
+    const isDup = score >= DEDUP_THRESHOLD_JACCARD;
+    const pass = (t.expect === 'dup' && isDup) || (t.expect === 'not-dup' && !isDup);
+    jaccardResults.push({ a: t.a, b: t.b, score: Math.round(score * 1000) / 1000, isDup, expected: t.expect, pass: pass ? 'OK' : 'FAIL' });
+  }
+
+  const embeddingResults = [];
+  const embedder = await getEmbedder();
+  if (embedder) {
+    for (const t of tests) {
+      const vecA = await embedText(t.a);
+      const vecB = await embedText(t.b);
+      const score = cosineSimilarity(vecA, vecB);
+      const isDup = score >= DEDUP_THRESHOLD_EMBEDDING;
+      const pass = (t.expect === 'dup' && isDup) || (t.expect === 'not-dup' && !isDup);
+      embeddingResults.push({ a: t.a, b: t.b, score: Math.round(score * 1000) / 1000, isDup, expected: t.expect, pass: pass ? 'OK' : 'FAIL' });
+    }
+  }
+
+  const jPassed = jaccardResults.filter(r => r.pass === 'OK').length;
+  const ePassed = embeddingResults.length ? embeddingResults.filter(r => r.pass === 'OK').length : 'N/A';
+
+  return {
+    jaccard: { tests: tests.length, passed: jPassed, failed: tests.length - jPassed, threshold: DEDUP_THRESHOLD_JACCARD, results: jaccardResults },
+    embedding: embeddingResults.length
+      ? { tests: tests.length, passed: ePassed, failed: tests.length - ePassed, threshold: DEDUP_THRESHOLD_EMBEDDING, results: embeddingResults }
+      : { available: false, reason: 'transformers not installed' }
+  };
+}
+
 // ── CLI Router ──────────────────────────────────────────
 
 function parseArgs(argv) {
@@ -985,6 +1256,8 @@ const COMMANDS = {
   'freeze': cmdFreeze,
   'unfreeze': cmdUnfreeze,
   'import': cmdImport,
+  'check-duplicate': cmdCheckDuplicate,
+  'similarity-test': cmdSimilarityTest,
 };
 
 async function main() {
