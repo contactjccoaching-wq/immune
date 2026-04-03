@@ -1,0 +1,120 @@
+{
+  "corrections": [
+    {
+      "antibody_id": "AB-012",
+      "original": "Dockerfile FROM openclaw + npm install claude-code as root, then USER node",
+      "corrected": "Dockerfile correctly sets USER node after root operations - COMPLIANT. No correction needed."
+    },
+    {
+      "antibody_id": "AB-015",
+      "original": "Gateway originally bound to 0.0.0.0 (lan) on port 18789",
+      "corrected": "Gateway now bound to 127.0.0.1 (loopback) on port 18789. Port 18790 removed. FIXED."
+    },
+    {
+      "antibody_id": "AB-040",
+      "original": "Claude credentials mounted as ./claude-credentials.json:/home/node/.claude/.credentials.json:ro",
+      "corrected": "Already correctly mounted with :ro flag. Specific file mount with read-only permission is secure. No correction needed."
+    },
+    {
+      "antibody_id": "AB-050",
+      "original": "Guardian script had Windows CRLF line endings causing bash syntax errors in Linux container",
+      "corrected": "Rewritten with proper LF line endings. Add .gitattributes with *.sh text eol=lf to enforce Unix line endings."
+    },
+    {
+      "antibody_id": "AB-055",
+      "original": "Git dubious ownership warning due to volume mount ownership mismatch",
+      "corrected": "Fixed with git config --global --add safe.directory. RESOLVED."
+    },
+    {
+      "antibody_id": "AB-060",
+      "original": "Guardian used pgrep to check gateway - fails across Docker container boundaries",
+      "corrected": "Changed to HTTP healthcheck: curl http://openclaw-gateway:18789/healthz every 30s. FIXED."
+    },
+    {
+      "antibody_id": "AB-030",
+      "original": "Guardian script missing error handling (set -e)",
+      "corrected": "Add set -euo pipefail at top of guardian.sh. Current script may silently continue on curl failure."
+    },
+    {
+      "antibody_id": "AB-045",
+      "original": "No explicit restart policy on critical containers in docker-compose",
+      "corrected": "Add restart: unless-stopped to all three services in docker-compose.yml"
+    }
+  ],
+  "new_threats_detected": [
+    {
+      "pattern": "Claude OAuth credentials (accessToken, refreshToken) mounted in plaintext read-only file",
+      "severity": "critical",
+      "correction": "Use Docker secrets for production, add file-level encryption, implement token rotation policy, limit credential scope to required capabilities only"
+    },
+    {
+      "pattern": "Guardian script retry logic tries doctor --fix 3 times then git rollback without rate limiting or alert escalation",
+      "severity": "warning",
+      "correction": "Add exponential backoff (30s, 60s, 120s) instead of immediate retries. Add alerting on repeated failures. Prevent retry storms."
+    },
+    {
+      "pattern": "Gateway healthcheck endpoint /healthz exposed internally with no authentication",
+      "severity": "warning",
+      "correction": "Healthcheck endpoints are typically unauthenticated by design, but log access. Consider IP-based restrictions within docker network if feasible."
+    },
+    {
+      "pattern": "CLI container network_mode service:openclaw-gateway with cap_drop NET_RAW NET_ADMIN - incomplete capability restrictions",
+      "severity": "info",
+      "correction": "Verify minimal capabilities. Consider cap_drop: ALL followed by cap_add for only required capabilities."
+    },
+    {
+      "pattern": "Guardian daily git backup of workspace - no retention policy or encryption specified",
+      "severity": "warning",
+      "correction": "Define retention (keep last N backups), add encryption for persistent backups, document backup verification testing."
+    },
+    {
+      "pattern": "claude-credentials.json file in host working directory - unencrypted OAuth tokens on Windows disk",
+      "severity": "critical",
+      "correction": "Never store OAuth credentials in plaintext on disk. Use Docker secrets, environment variables with .gitignore, encrypted vault, or Windows Credential Manager."
+    },
+    {
+      "pattern": "Docker-compose references openclaw-claude:local image without explicit version pinning or digest",
+      "severity": "warning",
+      "correction": "Pin image with digest or semantic version tag. Document build process. Never use local for production."
+    }
+  ],
+  "new_strategies_detected": [
+    {
+      "pattern": "Read-only volume mount (:ro flag) for credential files - prevents container from modifying mounted credentials",
+      "example": "./claude-credentials.json:/home/node/.claude/.credentials.json:ro",
+      "effectiveness": 0.75,
+      "explanation": "Good defense-in-depth but not foolproof - prevents accidental modification but does not prevent theft. Combine with network policies."
+    },
+    {
+      "pattern": "Loopback-only binding (127.0.0.1) for sensitive gateway service - blocks external network access at transport layer",
+      "example": "ports: 127.0.0.1:18789:18789",
+      "effectiveness": 0.95,
+      "explanation": "Excellent security pattern. Prevents accidental exposure. Still accessible to containers via service name. Complements application-layer auth."
+    },
+    {
+      "pattern": "HTTP healthcheck endpoint instead of process detection - accounts for container isolation",
+      "example": "curl http://openclaw-gateway:18789/healthz",
+      "effectiveness": 0.90,
+      "explanation": "Proper Docker-aware health check. More reliable than pgrep. Consider timeout and retry settings on curl."
+    },
+    {
+      "pattern": "Multi-tier failure recovery in Guardian: retry, doctor, rollback, cooldown - cascading error handling",
+      "example": "On failure: tries doctor --fix 3x, then git rollback, then cooldown",
+      "effectiveness": 0.65,
+      "explanation": "Good intent but needs backoff strategy. Current implementation risks retry storms. Add exponential backoff and alert threshold."
+    },
+    {
+      "pattern": "Claude OAuth max subscription tier in credentials - leveraging subscription level for access control",
+      "example": "subscriptionType: max",
+      "effectiveness": 0.60,
+      "explanation": "Can be used for capability-based access control, but relies on OpenClaw not spoofing. Verify server-side."
+    },
+    {
+      "pattern": "git safe.directory config in container to handle volume mount ownership mismatch - operational fix for POSIX/Windows permission bridge",
+      "example": "git config --global --add safe.directory /workspace",
+      "effectiveness": 0.70,
+      "explanation": "Practical workaround for Windows-Linux interop issue. Weaker than fixing ownership but maintains security gate."
+    }
+  ],
+  "summary": "Session demonstrates strong security fundamentals: loopback binding, read-only credentials, proper USER directive, HTTP healthchecks, capability restrictions. Critical gaps: plaintext OAuth tokens on Windows disk (use vault/secrets), missing error handling in guardian.sh (add set -euo pipefail), credential theft risk (no scope/rotation). Key patterns: read-only mounts plus loopback binding are effective defense-in-depth. Recommend: (1) Move credentials to Docker secrets, (2) Add set -euo pipefail and exponential backoff to guardian, (3) Pin image versions, (4) Add restart: unless-stopped, (5) Document credential rotation SOP."
+}
