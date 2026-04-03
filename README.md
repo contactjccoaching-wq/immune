@@ -1,353 +1,135 @@
-# Immune System v4.1 — Hybrid Adaptive Memory for Claude Code
+# Immune System v4.1 — Hybrid Adaptive Memory for AI Agents
 
 [![Stars](https://img.shields.io/github/stars/contactjccoaching-wq/immune?style=social)](https://github.com/contactjccoaching-wq/immune)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-![Immune System v4.1](immune-v41.png)
+A self-improving memory system that makes AI outputs better over time through two complementary memories:
 
-A Claude Code skill that makes any LLM output better over time through two complementary memories:
-
-- **Cheatsheet** (positive patterns): Domain-specific winning strategies injected *before* generation
-- **Immune** (negative patterns): Error detection antibodies applied *after* generation
-
-Both memories use **Hot/Cold tiering** to keep context lean, and **learn automatically** from every scan.
-
-## How It Works
-
-```
-[User Request]
-  --> Step -1: Context search (recall past sessions via FTS4)
-  --> Step 0:  Inject cheatsheet strategies (positive patterns)
-  --> Step 1:  Generate output (with cheatsheet context)
-  --> Step 2:  Immune scan (detect known + new errors)
-  --> Step 3:  Fix errors + learn new antibodies
-  --> Step 3b: Detect + learn new winning strategies
-  --> Step 4:  Score (0-100, domain-normalized z-score)
-  --> Step 6:  Session log (for future context recall)
-  --> Step 7:  Flush (save pending patterns before context compaction)
-```
-
-The system improves with usage. Each scan can discover new antibodies (things to avoid) and new strategies (things to repeat). These persist across sessions in SQLite FTS4 + JSON dual-write.
-
-## Key Features
-
-- **Dual memory**: Separate files for antibodies (`immune_memory.json`) and strategies (`cheatsheet_memory.json`) — never combined in the same prompt
-- **SQLite FTS4**: Full-text search index for instant pattern retrieval across 500+ antibodies. No more loading everything into context
-- **Adapter CLI**: Single entry point (`immune-adapter.js`) for all reads/writes — prevents corruption from concurrent agents, with file locking
-- **Sanitizer**: Secrets (API keys, tokens, passwords) automatically redacted before FTS indexing
-- **Hot/Cold tiering**: Active patterns sent in detail, dormant ones as keywords. Keeps Haiku's context under ~400 tokens typical
-- **Multi-domain**: `domains: ["fitness", "code"]` — match antibodies/strategies across multiple domains simultaneously
-- **ContextMemory**: Daily session logs indexed in FTS4 — the system recalls past scans for historical awareness (90-day retention + archive)
-- **Scoring**: Universal 0-100 score with domain-normalized z-scores (Welford algorithm). PASS/FAIL threshold per domain
-- **Flush**: Pre-compaction save with quality gate — pending patterns are persisted before Claude's context compression
-- **Housekeeping**: Auto-archival of unused patterns after 180 days, max limits (500 AB, 300 CS, 50MB SQLite)
-- **Auto-learning**: New patterns discovered during scans are added automatically
-- **COLD reactivation**: Dormant patterns reactivate when re-detected (FTS4 deduplication prevents duplicates)
-- **Strategy pruning**: Low-effectiveness strategies are auto-removed after enough data
-- **3 modes**: `full` (cheatsheet + scan), `scan-only`, `cheatsheet-only`
-- **Backwards compatible**: Reads v2/v3 memory files and auto-migrates
-
-## Usage
-
-```
-/immune Check this function for pitfalls
-/immune domain=fitness Verify this workout program
-/immune domains=fitness,code Check this workout API endpoint
-/immune                          # scans last output in conversation
-```
-
-## Configuration
-
-All settings are in `config.yaml`. Key user-tunable thresholds:
-
-```yaml
-deduplication:
-  engine: "auto"               # "auto" | "embeddings" | "jaccard"
-  threshold_embedding: 0.7     # Cosine similarity (0-1). Lower = more aggressive dedup
-  threshold_jaccard: 0.55      # Jaccard fallback threshold (0-1)
-
-tiers:
-  hot:
-    max_per_scan: 15           # Max antibodies sent to Haiku per scan
-    criteria:
-      severity_critical: true  # Always HOT if critical
-      min_seen_count: 3        # HOT if seen >= 3 times
-      max_days_cold: 30        # HOT if seen in last 30 days
-
-scoring:
-  deductions:
-    critical: 20               # Points lost per critical issue
-    warning: 10
-    info: 5
-```
-
-**Tuning tips:**
-- Getting too many duplicate antibodies? Lower `threshold_embedding` to `0.6`
-- Legitimate patterns rejected as duplicates? Raise to `0.75`
-- Want more antibodies per scan? Increase `max_per_scan` (costs more tokens)
-
-## Domains
-
-Pre-configured: `fitness`, `code`, `writing`, `research`, `strategy`, `webdesign`, `_global`
-
-Add custom domains by editing `config.yaml` → `domain_keywords`.
-
-## Benchmark: Learning Curve
-
-**Does immune actually improve code quality?** We tested it across 8 real-world coding tasks, 3 models, and 24 blind judgments.
-
-### Protocol
-
-1. Reset immune memory to 0
-2. Round 1: Generate code **without** immune (baseline)
-3. Rounds 2-8: Inject learned cheatsheet strategies **before** generation, scan **after**, learn new patterns
-4. Judge (Opus) scores blind on /40: security, error handling, best practices, robustness
-
-### Results
-
-| Model | Baseline (R1) | With Immune (avg R2-R8) | Improvement |
-|-------|:---:|:---:|:---:|
-| **Haiku** | 19/40 | 22.3/40 | **+17%** |
-| **Sonnet** | 17/40 | 26.9/40 | **+58%** |
-| **Opus** | 18/40 | 26.7/40 | **+48%** |
-
-### Score Progression
-
-```
-     R1    R2    R3    R4    R5    R6    R7    R8
-     (0)  (+3)  (+8) (+10) (+15) (+20) (+20) (+20) strategies
-      │     │     │     │     │     │     │     │
-  31 ─┤     ·     ·     ·     *     ·     ·     ·   Opus peak
-  29 ─┤     ·     ·     ·     *     ·     *     ·   Sonnet peaks
-  27 ─┤     **    **    *     ·     ·     ·     ·
-  25 ─┤     *     *     *     *     **    *     **
-  23 ─┤     ·     *     ·     ·     *     *     *
-  21 ─┤     ·     ·     ·     ·     ·     ·     ·
-  19 ─┤     *     ·     ·     *     ·     ·     ·   Haiku baseline
-  17 ─┤     *     ·     ·     ·     ·     ·     ·   Sonnet baseline
-      └─────┴─────┴─────┴─────┴─────┴─────┴─────┘
-```
-
-### Key Findings
-
-- **Sonnet benefits most** (+58%): Mid-tier models are the sweet spot — strong enough to follow strategies, weak enough to need them
-- **Knowledge transfers across domains**: Strategies from auth code improved WebSocket, proxy, and webhook code
-- **30 antibodies + 20 strategies** learned in 8 rounds, with diminishing returns around round 5
-- **Best single score**: Opus at 31/40 on API proxy task (R5)
-
-Open [`benchmark/viewer.html`](benchmark/viewer.html) for interactive charts, or see [`benchmark/results.md`](benchmark/results.md) for the full data.
-
-### Benchmark v2: Accumulated Memory (57 AB + 45 CS)
-
-The v1 benchmark started from zero and learned 30 antibodies + 20 strategies over 8 rounds. But that's an artificial setup — in practice, immune memory is built through real work over time.
-
-**How the 57+45 memory was actually built:**
-
-| Phase | Work done | AB learned | CS learned |
-|-------|-----------|:----------:|:----------:|
-| v1 benchmark | 8 coding tasks × 3 models, blind judging | +30 | +20 |
-| Fitness program reviews | Scanned ~50 React programs from Smart Rabbit (1000+ profiles DB) | +16 | +15 |
-| Security audit | Manual audit of 3 Cloudflare Workers (~8000 lines), then `/immune scan` on findings | +12 | +6 |
-| Code reviews | PWA review, blog worker review, webdesign scans | +7 | +4 |
-| Writing scans | Blog articles, technical documentation, benchmark writeup itself | -8 (deduplicated) | 0 |
-| **Total** | | **57** | **45** |
-
-This took ~2 weeks of real usage. The memory doesn't appear by itself — you have to scan real outputs, review real code, audit real infrastructure. Each task teaches immune something new.
-
-We re-ran the same 8 benchmark tasks with Sonnet using this accumulated memory:
-
-| Task | Naked | Immune v1 (0→30) | Immune v2 (57+45) | Delta v1→v2 |
-|------|:-----:|:----------------:|:-----------------:|:-----------:|
-| R1 JWT Auth | 17 | — (baseline) | **33** | — |
-| R2 Todo CRUD | — | 28 | **32** | +4 |
-| R3 File Upload | — | 27 | **32** | +5 |
-| R4 WebSocket | — | 25 | **33** | +8 |
-| R5 API Proxy | — | 29 | **31** | +2 |
-| R6 CLI Markdown | — | 25 | **30** | +5 |
-| R7 Webhook | — | 29 | **32** | +3 |
-| R8 Session Auth | — | 25 | **29** | +4 |
-| **Average** | **17.0** | **26.9** | **31.5** | **+4.6** |
-
-Category breakdown (v2 averages):
-- Security: **8.6**/10 — strongest, driven by 12 security-specific antibodies from the audit
-- Error handling: **7.8**/10
-- Best practices: **7.6**/10
-- Robustness: **7.5**/10
-
-See [`benchmark/run-v2/results.md`](benchmark/run-v2/results.md) for per-task judge details.
-
-### Benchmark v4: 7-Way Comparison (March 2026)
-
-The definitive benchmark. Same 8 tasks, 7 conditions, all judged blind by Opus /40.
-
-| Condition | R1 | R8 | Avg | Peak | Delta | Tokens |
-|-----------|:--:|:--:|:---:|:----:|:-----:|:------:|
-| Haiku + Immune | 17 | 24 | **23.9** | 27 | +41% | ~195K |
-| Sonnet + Immune | 23 | 27 | **25.0** | 27 | +17% | ~303K |
-| Opus + Immune | 27 | 35 | **31.1** | 35 | +30% | ~349K |
-| Sonnet + SP only | 30 | 36 | **31.1** | 36 | +20% | n/a |
-| Opus + SP only | 34 | 29 | **30.6** | 34 | -15% | n/a |
-| **Opus + SP + Immune** | **35** | **37** | **34.8** | **37** | **+6%** | **~282K** |
-| Opus + SP + Full Memory | 37 | 38 | **37.0** | 38 | +3% | ~413K |
-
-**Key findings:**
-
-1. **SP saturates at ~31 regardless of model** — Sonnet+SP (31.1) ≈ Opus+SP (30.6) ≈ Opus+Immune (31.1). Upgrading the model doesn't help when SP is already applied.
-2. **Immune is the only way past 31** — SP+Immune reaches 34.8 (+14% over SP alone). The immune system catches domain-specific patterns (HMAC timing, CSRF double-submit, JWT rotation) that generic principles miss.
-3. **Full Memory has diminishing returns** — 73 AB + 59 CS pre-loaded = 37.0 avg, but +46% tokens for only +2.2 pts over SP+Immune.
-4. **SP+Immune costs fewer tokens than Opus alone** — 282K vs 349K. SP principles produce more focused, less verbose code from R1.
-5. **Memory value is marginal in this benchmark** — SP+Immune R1 (empty memory) scores 35, R8 (21 AB + 24 CS) scores 37. Only +2 pts from 8 rounds of learning. Memory shines in **repeated, specialized tasks** (e.g., generating 1000 fitness programs), not varied general coding.
-
-**Hierarchy of value:**
-```
-SP principles:     +13 pts instant (biggest ROI)
-Immune learning:   +4.2 pts progressive
-Model upgrade:     +6 pts (but +0 when SP already applied)
-Full memory:       +2.2 pts at +46% token cost
-```
-
-**Best ROI: SP + progressive immune learning** — 94% of the ceiling at 68% of the token cost.
-
-Open [`benchmark-v4/viewer.html`](benchmark-v4/viewer.html) for interactive charts with all 7 conditions.
-
-See [`benchmark-v4/results.json`](benchmark-v4/results.json) for raw data.
-
-### Previous Benchmarks
-
-<details>
-<summary>Benchmark v1-v2 (click to expand)</summary>
-
-#### Comparison: All Conditions (v2)
-
-| Condition | Avg Score | vs Naked | Generation cost/task |
-|-----------|:---------:|:--------:|:--------------------:|
-| Naked (Sonnet) | 17.0 | — | ~$0.05 |
-| Immune v1 (0→30 AB) | 26.9 | +58% | ~$0.055 |
-| Superpowers only | 31.1 | +83% | ~$0.50-1.00 |
-| **Immune v2 (57+45)** | **31.5** | **+85%** | **~$0.055** |
-| **SP + Immune** | **34.6** | **+104%** | ~$1.00+ |
-
-See [`benchmark/comparison/results.md`](benchmark/comparison/results.md) for the original SP vs SP+IM breakdown.
-
-</details>
-
-### Cost Analysis
-
-**Generation cost** = what it costs to produce one piece of code with the cheatsheet injected. Immune adds ~1,500 input tokens (the cheatsheet) to the existing prompt — no extra API calls.
-
-| | Generation overhead/task | Quality gain |
-|---|:---:|:---:|
-| Immune v2 | +$0.005 (1,500 tokens) | +14.5 pts (+85%) |
-| Superpowers | +$0.50-1.00 (3-5 extra API calls) | +14.1 pts (+83%) |
-
-**But this doesn't include the cost of building the memory.** The 57 antibodies and 45 strategies came from real work:
-- v1 benchmark (8 rounds × 3 models + judging): ~$30-40
-- Fitness program scans (~50 programs × Haiku scan): ~$2
-- Security audit (3 agents × Opus): ~$5
-- Code/writing reviews: ~$3-5
-
-**Total investment to build the memory: ~$40-50 over 2 weeks.**
-
-Once built, the memory is essentially free to use (~$0.005/task). The ROI depends on volume — at 1,000 generations, the amortized cost of building + using immune is ~$0.10/task vs $0.50-1.00/task for Superpowers.
-
-### Accelerating Learning: Pair with Quality Tools
-
-The fastest way to build immune memory is to **use it alongside high-performing tools** like [Superpowers](https://github.com/anthropics/claude-code-plugins) or Chimera:
-
-1. Generate code with Superpowers (31/40 quality, ~$0.75/task)
-2. Scan the output with `/immune` → learns winning strategies + catches remaining issues
-3. Repeat 5-10 times across different tasks
-4. Immune alone now produces 31.5/40 quality for $0.055/task
-
-It's like training with a coach and then internalizing the lessons. The coach (Superpowers) costs $0.75/session, but once immune has absorbed the patterns, you get the same quality for $0.005/session.
-
-In practice, our memory went from 0 to 57+45 in ~2 weeks by combining:
-- Superpowers code generation → immune scan (learned code structure patterns)
-- Security audit findings → immune scan (learned 12 security antibodies in one session)
-- Fitness program reviews → immune scan (learned domain-specific React patterns)
-
-Each scan with a quality tool teaches immune 2-5 new patterns. After ~20 scans, the memory plateaus and immune alone matches the tool's output quality.
-
-### Tasks
-
-| Round | Domain | Task |
-|-------|--------|------|
-| R1 | Backend auth | JWT auth API (Express, bcrypt) |
-| R2 | Backend CRUD | Todo list API (filtering, pagination) |
-| R3 | File handling | Image upload + thumbnail (multer, sharp) |
-| R4 | WebSocket | Multi-room chat server (ws library) |
-| R5 | Infrastructure | API proxy + circuit breaker + cache |
-| R6 | Tooling | CLI markdown indexer + sitemap |
-| R7 | Events | Webhook receiver + HMAC + retry |
-| R8 | Security | Session auth + CSRF + brute-force protection |
-
-## Why It Matters: Institutional Knowledge Transfer
-
-The biggest value isn't the benchmark scores — it's **knowledge persistence across team changes**.
-
-When a senior developer leaves, their hard-won knowledge leaves with them: "never do X on this project", "always check Y before deploying", "this API silently fails on Z". With immune, that knowledge lives in two JSON files:
-
-- **57 antibodies** = 57 mistakes someone already made and corrected
-- **45 strategies** = 45 winning patterns validated in production
-
-A new team member runs `/immune` on their first code and immediately inherits months of accumulated domain expertise. Not a wiki nobody reads — patterns that **automatically inject** into the workflow.
-
-| Traditional | With Immune |
-|-------------|-------------|
-| Knowledge in people's heads | Knowledge in `immune_memory.json` |
-| Lost on employee turnover | Persists across team changes |
-| Onboarding takes weeks | Day-1 access to all patterns |
-| Same mistakes repeated | Each mistake caught once, prevented forever |
-| Tribal knowledge, undocumented | Explicit, versioned, auditable |
+- **Immune (antibodies)** — Detects and prevents known errors (negative patterns)
+- **Cheatsheet (strategies)** — Injects proven best practices before generation (positive patterns)
 
 ## Architecture
 
-Inspired by biological immune systems + Stanford's Dynamic Cheatsheet (2025):
-
-| Concept | Biological Analog | Implementation |
-|---------|------------------|----------------|
-| Antibodies | Immune memory cells | `immune_memory.json` — error patterns |
-| Strategies | Muscle memory | `cheatsheet_memory.json` — winning patterns |
-| Hot/Cold | Active vs memory T-cells | Tiered by severity, frequency, recency |
-| Reactivation | Immune recall response | COLD patterns reactivated on re-detection |
-| Pruning | Apoptosis | Low-effectiveness strategies auto-removed |
-| FTS4 Index | Thymus (pattern matching) | `immune.sqlite` — instant full-text search |
-| Adapter | Blood-brain barrier | `immune-adapter.js` — single controlled entry point |
-| Sanitizer | Immune tolerance | `sanitizer.js` — redacts self (secrets) before indexing |
-| ContextMemory | Episodic memory | `context/` — daily session logs, 90-day recall |
-| Score | Vital signs | 0-100 health score with domain baselines |
-| Flush | Synaptic consolidation | Save pending patterns before memory compression |
-
-### Storage (v4.1)
-
 ```
-immune-adapter.js          ← single CLI entry point (18 commands)
-    ├── immune.sqlite      ← SQLite FTS4 (primary, full-text search)
-    ├── immune_memory.json ← JSON fallback (dual-write, 73 antibodies)
-    ├── cheatsheet_memory.json ← JSON fallback (dual-write, 59 strategies)
-    ├── sanitizer.js       ← secret redaction before indexing
-    └── context/           ← daily session logs (FTS4-indexed)
+[User Request]
+  --> Context search (recall past sessions via FTS4)
+  --> Inject cheatsheet strategies (positive patterns)
+  --> Generate output (with strategy context)
+  --> Immune scan (detect known + new errors)
+  --> Fix errors + learn new antibodies
+  --> Detect + learn new winning strategies
+  --> Score (0-100, domain-normalized)
+  --> Session log (for future context recall)
+  --> Flush pending patterns (before context compaction)
 ```
 
-## Token Budget
+## Key Features
 
-- Antibodies: max 15 hot x ~80 tokens = ~1,200 tokens (scan prompt only)
-- Strategies: max 15 hot x ~60 tokens = ~900 tokens (generation prompt only)
-- **Never combined** — cheatsheet at generation time, antibodies at scan time
-- With domain filtering + FTS4: ~400 tokens typical per injection
+### Semantic Search (v4.1)
+- **Embeddings** — Local `Xenova/all-MiniLM-L6-v2` model (384 dims, ~22MB, runs in WASM)
+- **TF-IDF + Cosine Similarity** — Sparse vector fallback when embeddings unavailable
+- **Character Trigrams** — Jaccard similarity for fuzzy matching
+- **Hybrid Re-ranking** — `alpha * textual_similarity + (1-alpha) * heat_score`
+- **Auto-switch** — Full-scan for small corpus (<200), FTS4 pre-filter for large corpus
 
-## Integration with Chimera
+### Hot/Cold Tiering
+Keeps context lean for optimal performance:
+- **Hot** — Active patterns: critical severity, seen >= 3 times, or recent (<30 days)
+- **Cold** — Dormant patterns: sent as one-line summaries, auto-reactivated on match
 
-The immune system works standalone (`/immune`) or as Phase 3 of the [Chimera](https://github.com/contactjccoaching-wq/chimera) bio-inspired pipeline. When used with Chimera, cheatsheet strategies are injected into PRISM perspective prompts (Phase 0.5).
+### Dual Storage
+- **SQLite** (`immune.sqlite`) — FTS4 full-text search + structured queries
+- **JSON** (`immune_memory.json` / `cheatsheet_memory.json`) — Portable fallback
 
-## Related Projects
+### Deduplication
+- Embedding-based cosine similarity (threshold: 0.7)
+- Jaccard + longest common subsequence fallback (threshold: 0.55)
+- Quality gate: min 20 chars pattern, required fields enforced
 
-Other bio-inspired AI tools from the same author:
+### Housekeeping
+- Smart archival of useless patterns (COLD + low engagement + >180 days)
+- Configurable limits (500 antibodies, 300 strategies, 50MB SQLite)
+- Freeze/unfreeze to pause aging during inactive periods
 
-- [**chimera**](https://github.com/contactjccoaching-wq/chimera) — 3-stage optimization pipeline (Slime Mold → PRISM → Immune)
-- [**spinal-loop**](https://github.com/contactjccoaching-wq/spinal-loop) — Neuromuscular-inspired agent routing (cheap models first)
-- [**prism-framework**](https://github.com/contactjccoaching-wq/prism-framework) — Multi-agent synthesis via native LLM stochasticity
-- [**smartrabbit-mcp**](https://github.com/contactjccoaching-wq/smartrabbit-mcp) — MCP server for AI workout generation ([smartrabbitfitness.com](https://www.smartrabbitfitness.com))
+## File Structure
+
+```
+immune/
+  immune-adapter.js        # CLI adapter — all operations go through this
+  sanitizer.js              # Input sanitization
+  config.yaml               # Full configuration (thresholds, domains, limits)
+  immune_memory.json        # Antibodies (79 entries)
+  cheatsheet_memory.json    # Strategies (82 entries)
+  migration_state.json      # Migration/phasing state
+  analysis.json             # Pattern analysis data
+  package.json              # Dependencies
+  skill.md                  # Claude Code skill definition
+  agents/
+    immune-scan.md          # Scan agent instructions
+  context/
+    2026-03-29.md           # Session logs
+    2026-04-01.md
+```
+
+## CLI Commands
+
+```bash
+# Query
+node immune-adapter.js get-antibodies --domains '["code"]' --tier hot --limit 15
+node immune-adapter.js get-strategies --domains '["code"]' --query "security" --limit 10
+node immune-adapter.js search --query "XSS injection" --type antibodies
+
+# Add/Update
+node immune-adapter.js add-antibody --json '{"id":"AB-001","pattern":"...","severity":"critical","correction":"..."}'
+node immune-adapter.js update-antibody --id AB-001 --increment_seen
+
+# Bulk
+node immune-adapter.js flush-pending --json '{"antibodies":[...],"strategies":[...]}'
+node immune-adapter.js import --file export.immune.json
+
+# Maintenance
+node immune-adapter.js index              # Rebuild FTS4 index
+node immune-adapter.js stats              # Show counts and migration state
+node immune-adapter.js housekeep          # Archive useless patterns
+node immune-adapter.js integrity-check    # SQLite integrity check
+node immune-adapter.js freeze             # Pause aging clocks
+node immune-adapter.js unfreeze           # Resume aging clocks
+
+# Testing
+node immune-adapter.js similarity-test    # Run dedup test suite
+node immune-adapter.js retrieval-test     # Run semantic retrieval tests
+node immune-adapter.js check-duplicate --pattern "..." --type antibody
+```
+
+## Domains
+
+Patterns are tagged with domains for targeted retrieval:
+
+| Domain | Keywords |
+|--------|----------|
+| `code` | function, class, import, SQL, API, worker |
+| `fitness` | séries, reps, exercice, squat, programme |
+| `writing` | paragraphe, article, SEO, blog |
+| `research` | source, étude, analyse, hypothèse |
+| `strategy` | marché, compétiteur, ROI, revenue |
+| `webdesign` | CSS, HTML, responsive, CTA, UI |
+| `travel` | voyage, plage, hôtel, itinéraire, visa |
+| `_global` | Cross-domain patterns |
+
+## Configuration
+
+All tunable parameters are in `config.yaml`:
+- Re-ranking alpha (textual vs heat balance)
+- Deduplication thresholds (embedding: 0.7, Jaccard: 0.55)
+- Hot/Cold criteria
+- Housekeeping limits and archival rules
+- Domain keywords for auto-detection
+
+## Dependencies
+
+- `sql.js` — SQLite in WASM
+- `@xenova/transformers` — Local embedding model (auto-installed on first use)
+- `proper-lockfile` — Concurrency safety
 
 ## License
 
